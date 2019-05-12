@@ -126,7 +126,7 @@ def _determine_clock():
     color = COLOR_PAIR['GOOD']
 
     # After Hours, Go Home!
-    if hours < 9 or hours > 6:
+    if hours < 9 or hours > 18:
         color = COLOR_PAIR['ERROR']
 
     # TODO: Add Meeting Now / Meeting Soon
@@ -247,7 +247,7 @@ def find_parent(task_dict, current):
     for epic_key in task_dict:
         epic = task_dict[epic_key]
         if epic['desc'] == current.desc:
-            return None
+            return task_dict
         for sprint_key in epic['children']:
             sprint = epic['children'][sprint_key]
             if sprint['desc'] == current.desc:
@@ -256,6 +256,43 @@ def find_parent(task_dict, current):
                 fast = sprint['children'][fast_key]
                 if fast['desc'] == current.desc:
                     return sprint
+
+def find_nxt(task_dict, current):
+    last = False
+    for epic_key in task_dict:
+        epic = task_dict[epic_key]
+        if last:
+            return epic
+        if epic['desc'] == current.desc:
+            last = True
+        for sprint_key in epic['children']:
+            sprint = epic['children'][sprint_key]
+            if sprint['desc'] == current.desc:
+                last = True
+            for fast_key in sprint['children']:
+                fast = sprint['children'][fast_key]
+                if fast['desc'] == current.desc:
+                    last = True
+    return epic
+
+def find_last(task_dict, current):
+    last = None
+    for epic_key in task_dict:
+        epic = task_dict[epic_key]
+        if not last:
+            last = epic
+        if epic['desc'] == current.desc:
+            return last
+        for sprint_key in epic['children']:
+            sprint = epic['children'][sprint_key]
+            if sprint['desc'] == current.desc:
+                return last
+            for fast_key in sprint['children']:
+                fast = sprint['children'][fast_key]
+                if fast['desc'] == current.desc:
+                    return last
+        last = epic
+    return last
 
 def find(task_dict, current):
     for epic_key in task_dict:
@@ -311,6 +348,7 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
             new_dict['blocker'] = False
 
         cur['children'][str(uuid.uuid1())] = new_dict
+        cur['open'] = True
     elif action == 'b' and isinstance(current, Sprint_Task):
         read_str = stdscr.getstr()
         read_str = read_str.decode('utf-8')
@@ -322,12 +360,16 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         cur['children'][str(uuid.uuid1())] = new_dict
     elif action == 'd':
         parent = find_parent(task_dict, current)
-        for key in parent['children']:
-            if parent['children'][key] == cur:
-                del parent['children'][key]
-                parent['selected'] = True
+        if isinstance(current, Epic):
+            children = parent
+        else:
+            children = parent['children']
+            parent['selected'] = True
+
+        for key in children:
+            if children[key] == cur:
+                del children[key]
                 break
-        
     elif action == 'g':
         cur['selected'] = False
         first = find(task_dict, task_list[0])
@@ -336,6 +378,33 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         cur['selected'] = False
         last = find(task_dict, task_list[-1])
         last['selected'] = True
+    elif action == 'm':
+        read_str = stdscr.getstr()
+        read_str = read_str.decode('utf-8')
+        cur['desc'] = read_str
+    elif action == 'p':
+        cur['selected'] = False
+        parent = find_parent(task_dict, current)
+        parent['selected'] = True
+    elif action == 'n':
+        cur['selected'] = False
+        nxt = find_nxt(task_dict, current)
+        nxt['selected'] = True
+    elif action == 'N':
+        cur['selected'] = False
+        last = find_last(task_dict, current)
+        last['selected'] = True
+    elif action == 'e':
+        read_str = stdscr.getstr()
+        read_str = read_str.decode('utf-8')
+        cur['selected'] = False
+        new_dict = {'desc': read_str,
+                    'selected': True,
+                    'open': False,
+                    'children': {},
+                    }
+        task_dict[str(uuid.uuid1())] = new_dict
+        
 
     with open(TASK_PATH, 'w') as f:
         yaml.dump(task_dict, f)
