@@ -243,6 +243,20 @@ def print_tasks(stdscr, y, max_x):
 
     return y, task_list
 
+def find_parent(task_dict, current):
+    for epic_key in task_dict:
+        epic = task_dict[epic_key]
+        if epic['desc'] == current.desc:
+            return None
+        for sprint_key in epic['children']:
+            sprint = epic['children'][sprint_key]
+            if sprint['desc'] == current.desc:
+                return epic
+            for fast_key in sprint['children']:
+                fast = sprint['children'][fast_key]
+                if fast['desc'] == current.desc:
+                    return sprint
+
 def find(task_dict, current):
     for epic_key in task_dict:
         epic = task_dict[epic_key]
@@ -306,6 +320,22 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
                     'blocker': True,
                     }
         cur['children'][str(uuid.uuid1())] = new_dict
+    elif action == 'd':
+        parent = find_parent(task_dict, current)
+        for key in parent['children']:
+            if parent['children'][key] == cur:
+                del parent['children'][key]
+                parent['selected'] = True
+                break
+        
+    elif action == 'g':
+        cur['selected'] = False
+        first = find(task_dict, task_list[0])
+        first['selected'] = True
+    elif action == 'G':
+        cur['selected'] = False
+        last = find(task_dict, task_list[-1])
+        last['selected'] = True
 
     with open(TASK_PATH, 'w') as f:
         yaml.dump(task_dict, f)
@@ -321,6 +351,7 @@ def accept_input(stdscr, task_list, task_line):
 
 
     while True:
+        print_tasks(stdscr, task_line, max_x)
         selected = 0
         for i, task in enumerate(task_list):
             if task.selected:
