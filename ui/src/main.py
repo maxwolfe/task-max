@@ -222,21 +222,91 @@ def _get_task_list():
     task_items = _create_tasks(task_dict)
 
     for epic in task_items:
-        task_list.append((str(epic), _get_color(epic)))
-        for sprint in epic.children:
-            task_list.append((str(sprint), _get_color(sprint)))
-            for fast in sprint.children:
-                task_list.append((str(fast), _get_color(fast))) 
+        task_list.append(epic)
+        if epic.is_open:
+            for sprint in sorted(epic.children, key=lambda x: x.desc):
+                task_list.append(sprint)
+                if sprint.is_open:
+                    for fast in sorted(sprint.children, key=lambda x: x.desc):
+                        task_list.append(fast)
     return task_list
 
 def print_tasks(stdscr, y, max_x):
     task_list = _get_task_list()
 
-    for y, (task_str, task_attr) in enumerate(task_list, y):
+    for y, task in enumerate(task_list, y):
+        task_str = str(task)
+        task_attr = _get_color(task)
         stdscr.addstr(y, 0, task_str + ' ' * (max_x - len(task_str)),
                 task_attr)
 
     return y, task_list
+
+def find(task_dict, current):
+    for epic_key in task_dict:
+        epic = task_dict[epic_key]
+        if epic['desc'] == current.desc:
+            return epic
+        for sprint_key in epic['children']:
+            sprint = epic['children'][sprint_key]
+            if sprint['desc'] == current.desc:
+                return sprint
+            for fast_key in sprint['children']:
+                fast = sprint['children'][fast_key]
+                if fast['desc'] == current.desc:
+                    return fast
+    return None
+
+def handle_action(action, task_list, selected, y, max_x):
+    current = task_list[selected]
+
+    task_dict = {}
+    with open(TASK_PATH, 'r') as f:
+        task_dict = yaml.safe_load(f)
+
+    cur = find(task_dict, current)
+
+    if action == 'j' and selected < len(task_list) - 1:
+        nxt = find(task_dict, task_list[selected + 1])
+        cur['selected'] = False
+        nxt['selected'] = True
+        selected += 1
+    elif action == 'k' and selected > 0:
+        nxt = find(task_dict, task_list[selected - 1])
+        cur['selected'] = False
+        nxt['selected'] = True
+        selected -= 1
+    elif action == 'o': 
+        if cur['open']:
+            cur['open'] = False
+        else:
+            cur['open'] = True
+
+    with open(TASK_PATH, 'w') as f:
+        yaml.dump(task_dict, f)
+
+    return selected
+
+def clear(stdscr, top, bottom, max_x):
+    for y in range(top + 1, bottom):
+        stdscr.addstr(y, 0, ' ' * max_x, COLOR_PAIR['TEXT'])
+
+def accept_input(stdscr, task_list, task_line):
+    max_y, max_x = stdscr.getmaxyx()
+
+    selected = 0
+    for i, task in enumerate(task_list):
+        if task.selected:
+            selected = i
+    task_list[selected].selected = True
+
+    print_tasks(stdscr, task_line, max_x)
+
+    while True:
+        read_char = stdscr.getch()
+        selected = handle_action(chr(read_char), task_list, selected, task_line, max_x)
+        next_line, task_list = print_tasks(stdscr, task_line, max_x)
+        clear(stdscr, next_line, max_y - len(CLOCK[0]), max_x)
 
 def main(stdscr):
     setup_colors()
@@ -244,13 +314,12 @@ def main(stdscr):
     max_y, max_x = stdscr.getmaxyx()
 
     # Give line space
-    next_line = print_banner(stdscr, 0, 0) + 2
+    task_line = print_banner(stdscr, 0, 0) + 2
 
-    next_line, task_list = print_tasks(stdscr, next_line, max_x)
+    next_line, task_list = print_tasks(stdscr, task_line, max_x)
 
     print_clock(stdscr, max_y, max_x)
 
-    stdscr.getch()
-
+    accept_input(stdscr, task_list, task_line)
 if __name__ == '__main__':
     curses.wrapper(main)
