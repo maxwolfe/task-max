@@ -4,17 +4,29 @@ import datetime
 import yaml
 
 from collections import defaultdict
+from tasks import Task
 
-COLORS = {'BLACK' : curses.COLOR_BLACK,
-          'RED' : curses.COLOR_RED,
-          'GREEN': curses.COLOR_GREEN,
-          'WHITE': curses.COLOR_WHITE,
-          'YELLOW': curses.COLOR_YELLOW,
+COLORS = {'BLACK': 1,
+          'BG': -1,
+          'RED': 196, 
+          'GREEN': 28,
+          'WHITE': 231,
+          'YELLOW': 226,
+          'BLUE': 39,
+          'PINK': 201,
+          'ORANGE': 166,
+          'GREY': 242,
+          'PURPLE': 129,
          }
-USE_COLOR = {'TEXT': (1, COLORS['WHITE'], COLORS['BLACK']),
-             'ERROR': (2, COLORS['RED'], COLORS['BLACK']),
-             'GOOD': (3, COLORS['GREEN'], COLORS['BLACK']),
+USE_COLOR = {'TEXT': (1, COLORS['WHITE'], COLORS['BG']),
+             'ERROR': (2, COLORS['RED'], COLORS['BG']),
+             'GOOD': (3, COLORS['GREEN'], COLORS['BG']),
             }
+LEVEL = {0: (len(USE_COLOR) + 1, COLORS['ORANGE'], COLORS['BG']),
+         1: (len(USE_COLOR) + 2, COLORS['PURPLE'], COLORS['BG']),
+         2: (len(USE_COLOR) + 3, COLORS['BLUE'], COLORS['BG']),
+         3: (len(USE_COLOR) + 4, COLORS['PINK'], COLORS['BG']),
+        }
 COLOR_PAIR = defaultdict(lambda: curses.color_pair(1))
 CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## ',
 	      ' ##   ##  ', '  #####   '],
@@ -49,8 +61,16 @@ class GlyphError(Exception):
 
 
 def setup_colors():
+    curses.start_color()
+    curses.use_default_colors()
+
     for key in USE_COLOR:
         num, fg, bg = USE_COLOR[key]
+        curses.init_pair(num, fg, bg)
+        COLOR_PAIR[key] = curses.color_pair(num)
+
+    for key in LEVEL:
+        num, fg, bg = LEVEL[key]
         curses.init_pair(num, fg, bg)
         COLOR_PAIR[key] = curses.color_pair(num)
 
@@ -134,23 +154,40 @@ def print_banner(stdscr, y, x):
 
     return y
 
+def _create_child_tasks(parent, child):
+    task = Task.from_task(parent, child['desc'], child['open'])
+    for key in child['children']:
+        c = child['children'][key]
+        _create_child_tasks(task, c)
+
 def _get_task_list():
     task_dict = {}
+    task_items = []
+    task_list = []
     with open(TASK_PATH, 'r') as f:
         task_dict = yaml.safe_load(f)
-    
 
+    for key in task_dict:
+        t = task_dict[key]
+        task = Task(t['desc'], t['open'])
+        for key in t['children']:
+            child = t['children'][key]
+            _create_child_tasks(task, child)
+        task_items.append(task)
+
+    for item in task_items:
+        lines = str(item).splitlines()
+        for line in lines:
+            task_list.append((line, COLOR_PAIR[line.count(Task.TAB_SPACE)]))
+
+    return task_list
 
 def print_tasks(stdscr, y, x):
     task_list = _get_task_list()
-    task_list = [('First Line!', COLOR_PAIR['GOOD']),
-                 ('Bad Line!', COLOR_PAIR['BAD']),
-                 ('Error Line!', COLOR_PAIR['ERROR']),
-                 ('Highlight Line!', COLOR_PAIR['HIGHLIGHT']),
-                ]
 
     for y, (task_str, task_attr) in enumerate(task_list, y):
         stdscr.addstr(y, x, task_str, task_attr)
+
     return y
 
 def main(stdscr):
