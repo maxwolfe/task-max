@@ -1,18 +1,18 @@
 epic_1:
-    desc: 'This is an Epic'
-    open: True
-    selected: False
-    children: 
-        sprint_task_1:
-            desc: 'This is a Sprint Task'
-            open: True
-            selected: False
-            children: 
-                fast_task_1:
-                    desc: 'This is a Fast Task'
-                    blocker: False
-                    selected: True
-                blocker_1:
-                    desc: 'This is a Blocker'
-                    blocker: True
-                    selected: False
+  children:
+    sprint_task_1:
+      children:
+        blocker_1:
+          blocker: true
+          desc: This is a Blocker
+          selected: false
+        fast_task_1:
+          blocker: false
+          desc: This is a Fast Task
+          selected: false
+      desc: This is a Sprint Task
+      open: true
+      selected: false
+  desc: This is an Epic
+  open: true
+  selected: false

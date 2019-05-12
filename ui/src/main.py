@@ -1,6 +1,7 @@
 #!/usr/bin/env pxthon3
 import curses
 import datetime
+import uuid
 import yaml
 
 from collections import defaultdict
@@ -257,7 +258,7 @@ def find(task_dict, current):
                     return fast
     return None
 
-def handle_action(action, task_list, selected, y, max_x):
+def handle_action(stdscr, action, task_list, selected, y, max_x):
     current = task_list[selected]
 
     task_dict = {}
@@ -276,11 +277,35 @@ def handle_action(action, task_list, selected, y, max_x):
         cur['selected'] = False
         nxt['selected'] = True
         selected -= 1
-    elif action == 'o': 
+    elif action == 'o' and len(current.children) > 0: 
         if cur['open']:
             cur['open'] = False
         else:
             cur['open'] = True
+    elif action == 'a' and (isinstance(current, Epic) or isinstance(current,
+        Sprint_Task)):
+        read_str = stdscr.getstr()
+        read_str = read_str.decode('utf-8')
+        cur['selected'] = False
+        new_dict = {'desc': read_str,
+                    'selected': True,
+                    }
+        if isinstance(current, Epic):
+            new_dict['open'] = False
+            new_dict['children'] = {}
+        elif isinstance(current, Sprint_Task):
+            new_dict['blocker'] = False
+
+        cur['children'][str(uuid.uuid1())] = new_dict
+    elif action == 'b' and isinstance(current, Sprint_Task):
+        read_str = stdscr.getstr()
+        read_str = read_str.decode('utf-8')
+        cur['selected'] = False
+        new_dict = {'desc': read_str,
+                    'selected': True,
+                    'blocker': True,
+                    }
+        cur['children'][str(uuid.uuid1())] = new_dict
 
     with open(TASK_PATH, 'w') as f:
         yaml.dump(task_dict, f)
@@ -294,17 +319,16 @@ def clear(stdscr, top, bottom, max_x):
 def accept_input(stdscr, task_list, task_line):
     max_y, max_x = stdscr.getmaxyx()
 
-    selected = 0
-    for i, task in enumerate(task_list):
-        if task.selected:
-            selected = i
-    task_list[selected].selected = True
-
-    print_tasks(stdscr, task_line, max_x)
 
     while True:
+        selected = 0
+        for i, task in enumerate(task_list):
+            if task.selected:
+                selected = i
+        task_list[selected].selected = True
+
         read_char = stdscr.getch()
-        selected = handle_action(chr(read_char), task_list, selected, task_line, max_x)
+        selected = handle_action(stdscr, chr(read_char), task_list, selected, task_line, max_x)
         next_line, task_list = print_tasks(stdscr, task_line, max_x)
         clear(stdscr, next_line, max_y - len(CLOCK[0]), max_x)
 
