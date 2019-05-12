@@ -4,9 +4,9 @@ import datetime
 import yaml
 
 from collections import defaultdict
-from tasks import Task
+from tasks import Epic, Sprint_Task, Fast_Task, Blocker
 
-COLORS = {'BLACK': 1,
+COLORS = {'BLACK': 0,
           'BG': -1,
           'RED': 196, 
           'GREEN': 28,
@@ -17,10 +17,21 @@ COLORS = {'BLACK': 1,
           'ORANGE': 166,
           'GREY': 242,
           'PURPLE': 129,
+          'BLOCKED': -1,
+          'SELECT': 238,
          }
 USE_COLOR = {'TEXT': (1, COLORS['WHITE'], COLORS['BG']),
              'ERROR': (2, COLORS['RED'], COLORS['BG']),
              'GOOD': (3, COLORS['GREEN'], COLORS['BG']),
+             'EPIC': (4, COLORS['PURPLE'], COLORS['BG']),
+             'BLOCKED_EPIC': (5, COLORS['PURPLE'], COLORS['BLOCKED']),
+             'SPRINT': (6, COLORS['BLUE'], COLORS['BG']),
+             'BLOCKED_SPRINT': (7, COLORS['BLUE'], COLORS['BLOCKED']),
+             'BLOCKER': (8, COLORS['RED'], COLORS['BG']),
+             'SELECT_EPIC': (9, COLORS['PURPLE'], COLORS['SELECT']),
+             'SELECT_SPRINT': (10, COLORS['BLUE'], COLORS['SELECT']),
+             'SELECT_BLOCKER': (11, COLORS['RED'], COLORS['SELECT']),
+             'SELECT_FAST': (12, COLORS['WHITE'], COLORS['SELECT']),
             }
 LEVEL = {0: (len(USE_COLOR) + 1, COLORS['ORANGE'], COLORS['BG']),
          1: (len(USE_COLOR) + 2, COLORS['PURPLE'], COLORS['BG']),
@@ -90,7 +101,7 @@ def _combine_glyphs(orig, to_add):
 def _val_to_glyph(num):
     digits = []
 
-    if num > 10:
+    if num >= 10:
         digits.append(num // 10)
         num %= 10
     digits.append(num)
@@ -154,11 +165,52 @@ def print_banner(stdscr, y, x):
 
     return y
 
-def _create_child_tasks(parent, child):
-    task = Task.from_task(parent, child['desc'], child['open'])
-    for key in child['children']:
-        c = child['children'][key]
-        _create_child_tasks(task, c)
+def _get_color(task):
+    if task.priority == 0:
+        if task.selected:
+            return COLOR_PAIR['SELECT_EPIC']
+        elif task.blocked:
+            return COLOR_PAIR['BLOCKED_EPIC']
+        return COLOR_PAIR['EPIC']
+    elif task.priority == 1:
+        if task.selected:
+            return COLOR_PAIR['SELECT_SPRINT']
+        elif task.blocked:
+            return COLOR_PAIR['BLOCKED_SPRINT']
+        return COLOR_PAIR['SPRINT']
+    elif task.priority == 2:
+        if task.selected and task.blocked:
+            return COLOR_PAIR['SELECT_BLOCKER']
+        elif task.selected:
+            return COLOR_PAIR['SELECT_FAST']
+        elif task.blocked:
+            return COLOR_PAIR['BLOCKER']
+        return COLOR_PAIR['BOLD']
+    
+    return COLOR_PAIR['TEXT']
+    
+
+def _create_tasks(task_dict):
+    task_list = []
+    for key in task_dict:
+        epic_dict = task_dict[key]
+        epic = Epic(epic_dict['desc'], epic_dict['open'],
+                epic_dict['selected'])
+        for sprint_key in epic_dict['children']:
+            sprint_dict = epic_dict['children'][sprint_key]
+            sprint = Sprint_Task.from_parent(epic, sprint_dict['desc'],
+                    sprint_dict['open'], sprint_dict['selected'])
+            for fast_key in sprint_dict['children']:
+                fast_dict = sprint_dict['children'][fast_key]
+                if fast_dict['blocker']:
+                    Blocker.from_parent(sprint, fast_dict['desc'],
+                            fast_dict['selected'])
+                else:
+                    Fast_Task.from_parent(sprint, fast_dict['desc'],
+                            fast_dict['selected'])
+        task_list.append(epic)
+
+    return task_list
 
 def _get_task_list():
     task_dict = {}
@@ -167,28 +219,24 @@ def _get_task_list():
     with open(TASK_PATH, 'r') as f:
         task_dict = yaml.safe_load(f)
 
-    for key in task_dict:
-        t = task_dict[key]
-        task = Task(t['desc'], t['open'])
-        for key in t['children']:
-            child = t['children'][key]
-            _create_child_tasks(task, child)
-        task_items.append(task)
+    task_items = _create_tasks(task_dict)
 
-    for item in task_items:
-        lines = str(item).splitlines()
-        for line in lines:
-            task_list.append((line, COLOR_PAIR[line.count(Task.TAB_SPACE)]))
-
+    for epic in task_items:
+        task_list.append((str(epic), _get_color(epic)))
+        for sprint in epic.children:
+            task_list.append((str(sprint), _get_color(sprint)))
+            for fast in sprint.children:
+                task_list.append((str(fast), _get_color(fast))) 
     return task_list
 
-def print_tasks(stdscr, y, x):
+def print_tasks(stdscr, y, max_x):
     task_list = _get_task_list()
 
     for y, (task_str, task_attr) in enumerate(task_list, y):
-        stdscr.addstr(y, x, task_str, task_attr)
+        stdscr.addstr(y, 0, task_str + ' ' * (max_x - len(task_str)),
+                task_attr)
 
-    return y
+    return y, task_list
 
 def main(stdscr):
     setup_colors()
@@ -198,7 +246,7 @@ def main(stdscr):
     # Give line space
     next_line = print_banner(stdscr, 0, 0) + 2
 
-    print_tasks(stdscr, next_line, 0)
+    next_line, task_list = print_tasks(stdscr, next_line, max_x)
 
     print_clock(stdscr, max_y, max_x)
 

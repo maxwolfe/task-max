@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 
+class InvalidTask(Exception):
+    pass
 
 class Task:
-
-    TAB_SPACE = '\x90' * 2
-
-    def __init__(self, info, is_open):
-        self.info = info
+    def __init__(self, desc, is_open, is_selected):
+        self.desc = desc
+        self.priority = 0
         self.parent = None
-        self.ancestors = 0
         self.children = []
         if is_open:
             self._is_open = True
         else:
             self._is_open = False
+        if is_selected:
+            self.selected= True
+        else:
+            self.selected = False
 
     @classmethod
-    def from_task(cls, task, info, is_open):
-        self = cls(info, is_open)
-        self.parent = task
-        self.ancestors = self.parent.ancestors + 1
-        task.add_child(self)
+    def from_parent(cls, parent, desc, is_open, is_selected):
+        self = cls(desc, is_open, is_selected)
+        parent.add_subtask(self)
         return self
 
     @property
@@ -34,16 +35,28 @@ class Task:
         else:
             self._is_open = False
 
-    def add_child(self, task):
-        self.children.append(task)
+    @property
+    def tab_space(self):
+        return '  ' * self.priority
 
-    def remove_child(self, task):
-        if task in self.children:
-            self.children.remove(task)
+    @property
+    def blocked(self):
+        for child in self.children:
+            if child.blocked:
+                return True
+        return False
+
+    def add_subtask(self, sub_task):
+        self.children.append(sub_task)
+        sub_task.parent = self
+
+    def remove_subtask(self, sub_task):
+        if sub_task in self.children:
+            self.children.remove(sub_task)
 
     def __del__(self):
         if self.parent:
-            self.parent.remove_child(self)
+            self.parent.remove_subtask(self)
         for child in self.children:
             del child
 
@@ -51,14 +64,55 @@ class Task:
         output = ''
         if len(self.children) > 0:
             if self._is_open:
-                output += 'v {}\n'.format(self.info)
-                for child in self.children:
-                    output += '{}{}'.format(self.TAB_SPACE * 
-                            (self.ancestors + 1), str(child))
+                output += '{}v {}'.format(self.tab_space, self.desc)
             else:
-                output += '> {}'.format(self.info)
+                output += '{}> {}'.format(self.tab_space, self.desc)
         else:
-            output += '  {}'.format(self.info)
+            output += '{}  {}'.format(self.tab_space, self.desc)
+
         return output
             
+class Epic(Task):
+    def __init__(self, desc, is_open, is_selected):
+        super().__init__(desc, is_open, is_selected)
 
+    @classmethod
+    def from_parent(cls, parent, desc, is_open, is_selected):
+        raise InvalidTask("Epic be created from a parent")
+
+class Sprint_Task(Task):
+    def __init__(self, desc, is_open, is_selected):
+        super().__init__(desc, is_open, is_selected)
+        self.priority = 1
+
+    @classmethod
+    def from_parent(cls, parent, desc, is_open, is_selected):
+        if not isinstance(parent, Epic):
+            raise InvalidTask("Sprint Task must be created from an Epic")
+        return super().from_parent(parent, desc, is_open, is_selected)
+
+class Fast_Task(Task):
+    def __init__(self, desc, is_open, is_selected):
+        super().__init__(desc, False, is_selected)
+        self.priority = 2
+
+    @classmethod
+    def from_parent(cls, parent, desc, is_selected):
+        if not isinstance(parent, Sprint_Task):
+            raise InvalidTask("Fast Task must be created from a Sprint Task")
+        return super().from_parent(parent, desc, False, is_selected)
+
+class Blocker(Task):
+    def __init__(self, desc, is_open, is_selected):
+        super().__init__(desc, False, is_selected)
+        self.priority = 2
+
+    @classmethod
+    def from_parent(cls, parent, desc, is_selected):
+        if not isinstance(parent, Sprint_Task):
+            raise InvalidTask("Blocker must be created from a Sprint Task")
+        return super().from_parent(parent, desc, False, is_selected)
+
+    @property
+    def blocked(self):
+        return True

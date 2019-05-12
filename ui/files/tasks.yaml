@@ -1,29 +1,18 @@
-task_1:
-    desc: 'This is a task'
+epic_1:
+    desc: 'This is an Epic'
     open: True
+    selected: False
     children: 
-        subtask_1:
-            desc: 'This is a sub-task'
+        sprint_task_1:
+            desc: 'This is a Sprint Task'
             open: True
+            selected: False
             children: 
-                subsubtask_1:
-                    desc: 'A sub-sub-task'
-                    open: False
-                    children: []
-task_2:
-    desc: 'This is a task'
-    open: True
-    children: []
-
-task_3:
-    desc: 'This is a task'
-    open: True
-    children: 
-        subtask_1:
-            desc: 'This is a sub-task'
-            open: True
-            children: 
-                subsubtask_1:
-                    desc: 'A sub-sub-task'
-                    open: False
-                    children: []
+                fast_task_1:
+                    desc: 'This is a Fast Task'
+                    blocker: False
+                    selected: True
+                blocker_1:
+                    desc: 'This is a Blocker'
+                    blocker: True
+                    selected: False
