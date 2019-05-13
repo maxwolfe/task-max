@@ -46,6 +46,22 @@ class Task:
                 return True
         return False
 
+    @property
+    def dict(self):
+        counter = 0
+        task_dict = {'desc': self.desc,
+                     'selected': self.selected,
+                    }
+        if self.children:
+            task_dict['open'] = self._is_open
+            task_dict['children'] = {}
+            for child in self.children:
+                task_dict['children'][counter] = child.dict
+                counter += 1
+        else:
+            task_dict['blocker'] = self.blocked
+        return task_dict
+
     def add_subtask(self, sub_task):
         self.children.append(sub_task)
         sub_task.parent = self
@@ -53,6 +69,7 @@ class Task:
     def remove_subtask(self, sub_task):
         if sub_task in self.children:
             self.children.remove(sub_task)
+        
 
     def __del__(self):
         if self.parent:
