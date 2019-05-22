@@ -6,6 +6,8 @@ import yaml
 
 from collections import defaultdict
 from tasks import Epic, Sprint_Task, Fast_Task, Blocker
+from time import sleep
+from threading import Thread
 
 COLORS = {'BLACK': 0,
           'BG': -1,
@@ -63,6 +65,7 @@ CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## 
 	 ':': ['   ', '   ', ' # ', '   ', ' # ', '   ', '   '],
         }
 GLYPH_LEN = len(CLOCK[0])
+GLYPH_WID = len(CLOCK[0][0])
 
 BANNER_PATH = 'ui/files/banner'
 TASK_PATH = 'ui/files/tasks.yaml'
@@ -156,6 +159,16 @@ def print_clock(stdscr, y, x):
 
     return y
 
+def clean(stdscr, x_start, x_end, y_start, y_end):
+    for y in range(y_start, y_end):
+        stdscr.addstr(y, x_start, ' ' * (x_end - x_start - 1), COLOR_PAIR['TEXT'])
+
+def update_clock(stdscr):
+    while True:
+        max_y, max_x = stdscr.getmaxyx()
+        clean(stdscr, 0, max_x, max_y - GLYPH_LEN, max_y)
+        print_clock(stdscr, max_y, max_x)
+        sleep(10)
 
 def print_banner(stdscr, y, x):
     with open(BANNER_PATH, 'r') as f:
@@ -434,9 +447,12 @@ def accept_input(stdscr, task_list, task_line):
         task_list[selected].selected = True
 
         read_char = stdscr.getch()
-        selected = handle_action(stdscr, chr(read_char), task_list, selected, task_line, max_x)
-        next_line, task_list = print_tasks(stdscr, task_line, max_x)
-        clear(stdscr, next_line, max_y - len(CLOCK[0]), max_x)
+        try:
+            selected = handle_action(stdscr, chr(read_char), task_list, selected, task_line, max_x)
+            next_line, task_list = print_tasks(stdscr, task_line, max_x)
+            clear(stdscr, next_line, max_y - len(CLOCK[0]), max_x)
+        except Exception:
+            pass
 
 def main(stdscr):
     stdscr.nodelay(1)
@@ -449,8 +465,10 @@ def main(stdscr):
 
     next_line, task_list = print_tasks(stdscr, task_line, max_x)
 
-    print_clock(stdscr, max_y, max_x)
+    thread = Thread(target=update_clock, args=(stdscr,))
+    thread.start()
 
     accept_input(stdscr, task_list, task_line)
+
 if __name__ == '__main__':
     curses.wrapper(main)
