@@ -335,7 +335,7 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
             cur['open'] = True
     elif action == 'a' and (isinstance(current, Epic) or isinstance(current,
         Sprint_Task)):
-        read_str = stdscr.getstr()
+        read_str = get_string(stdscr)
         read_str = read_str.decode('utf-8')
         cur['selected'] = False
         new_dict = {'desc': read_str,
@@ -350,7 +350,7 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         cur['children'][str(uuid.uuid1())] = new_dict
         cur['open'] = True
     elif action == 'b' and isinstance(current, Sprint_Task):
-        read_str = stdscr.getstr()
+        read_str = get_string(stdscr)
         read_str = read_str.decode('utf-8')
         cur['selected'] = False
         new_dict = {'desc': read_str,
@@ -379,7 +379,7 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         last = find(task_dict, task_list[-1])
         last['selected'] = True
     elif action == 'm':
-        read_str = stdscr.getstr()
+        read_str = get_string(stdscr)
         read_str = read_str.decode('utf-8')
         cur['desc'] = read_str
     elif action == 'p':
@@ -395,7 +395,7 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         last = find_last(task_dict, current)
         last['selected'] = True
     elif action == 'e':
-        read_str = stdscr.getstr()
+        read_str = get_string(stdscr)
         read_str = read_str.decode('utf-8')
         cur['selected'] = False
         new_dict = {'desc': read_str,
@@ -410,6 +410,12 @@ def handle_action(stdscr, action, task_list, selected, y, max_x):
         yaml.dump(task_dict, f)
 
     return selected
+
+def get_string(stdscr):
+    stdscr.nodelay(0)
+    read_str = stdscr.getstr()
+    stdscr.nodelay(1)
+    return read_str
 
 def clear(stdscr, top, bottom, max_x):
     for y in range(top + 1, bottom):
@@ -433,6 +439,7 @@ def accept_input(stdscr, task_list, task_line):
         clear(stdscr, next_line, max_y - len(CLOCK[0]), max_x)
 
 def main(stdscr):
+    stdscr.nodelay(1)
     setup_colors()
 
     max_y, max_x = stdscr.getmaxyx()
