@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
+import yaml
+
+from uuid import uuid1
+
 
 class InvalidTask(Exception):
     pass
+
 
 class Task:
     def __init__(self, desc, is_open, is_selected):
@@ -62,6 +67,58 @@ class Task:
             task_dict['blocker'] = self.blocked
         return task_dict
 
+    def toggle_select(self):
+        if self.selected:
+            self.selected = False
+        else:
+            self.selected = True
+
+    def get_last(self):
+        if not self.is_open or not self.children:
+            return self
+
+        return self.children[-1].get_last()
+
+    def find_next(self):
+        # if open and a child exists, select first one
+        if self.is_open and self.children:
+            return self.children[0]
+        
+        # if a parent exists, ask it to find next lower than you
+        if self.parent:
+            return self.parent.find_after(self)
+
+    # find after if possible
+    def find_after(self, task):
+        task_index = self.children.index(task)
+
+        if task_index + 1 < len(self.children):
+            return self.children[task_index + 1]
+
+        return self.parent.find_after(self)
+
+    def find_previous(self):
+        return self.parent.find_before(self)
+
+    def find_before(self, task):
+        task_index = self.children.index(task)
+
+        if task_index == 0:
+            return self
+        return self.children[task_index - 1]
+
+    def select_next(self):
+        nxt = self.find_next()
+
+        self.toggle_select()
+        nxt.toggle_select()
+
+    def select_previous(self):
+        prev = self.find_previous()
+
+        self.toggle_select()
+        prev.toggle_select()
+
     def add_subtask(self, sub_task):
         self.children.append(sub_task)
         sub_task.parent = self
@@ -70,7 +127,6 @@ class Task:
         if sub_task in self.children:
             self.children.remove(sub_task)
         
-
     def __del__(self):
         if self.parent:
             self.parent.remove_subtask(self)
@@ -88,14 +144,54 @@ class Task:
             output += '{}  {}'.format(self.tab_space, self.desc)
 
         return output
+    
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.desc == other.desc
+        return False
             
+
+class Root(Task):
+    def __init__(self):
+        super().__init__('The Root', False, False)
+
+    def find_next(self):
+        if self.children:
+            return self.children[0]
+        return self
+
+    def find_pevious(self):
+        return self
+
+    def find_after(self, task):
+        task_index = self.children.index(task)
+
+        if task_index + 1 < len(self.children):
+            return self.children[task_index + 1]
+
+        return task.get_last()
+
+    def find_before(self, task):
+        task_index = self.children.index(task)
+
+        if task_index == 0:
+            return task
+        return self.children[task_index - 1]
+
+    def __str__(self):
+        return None
+
+
 class Epic(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, is_open, is_selected)
 
     @classmethod
     def from_parent(cls, parent, desc, is_open, is_selected):
-        raise InvalidTask("Epic be created from a parent")
+        if not isinstance(parent, Root):
+            raise InvalidTask("Sprint Task must be created from an Epic")
+        return super().from_parent(parent, desc, is_open, is_selected)
+
 
 class Sprint_Task(Task):
     def __init__(self, desc, is_open, is_selected):
@@ -108,6 +204,7 @@ class Sprint_Task(Task):
             raise InvalidTask("Sprint Task must be created from an Epic")
         return super().from_parent(parent, desc, is_open, is_selected)
 
+
 class Fast_Task(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, False, is_selected)
@@ -118,6 +215,7 @@ class Fast_Task(Task):
         if not isinstance(parent, Sprint_Task):
             raise InvalidTask("Fast Task must be created from a Sprint Task")
         return super().from_parent(parent, desc, False, is_selected)
+
 
 class Blocker(Task):
     def __init__(self, desc, is_open, is_selected):
@@ -133,3 +231,95 @@ class Blocker(Task):
     @property
     def blocked(self):
         return True
+
+
+class Fast_Factory:
+    @staticmethod
+    def create_task(parent, desc, is_selected, is_blocked):
+        if is_blocked:
+            return Blocker.from_parent(parent, desc, is_selected)
+        else:
+            return Fast_Task.from_parent(parent, desc, is_selected)
+
+
+class Task_List:
+    def __init__(self):
+        self.root = Root()
+
+    @classmethod
+    def from_yaml(cls, yaml_file):
+        self = cls()
+        with open(yaml_file, 'r') as f:
+            task_dict = yaml.safe_load(f)
+
+        for epic_key in task_dict:
+            epic = task_dict[epic_key]
+            Epic.from_parent(self.root,
+                             epic['desc'],
+                             epic['open'],
+                             epic['selected'],
+                             )
+            for sprint_key in epic['children']:
+                sprint = epic['children'][sprint_key]
+                Sprint_Task.from_parent(epic,
+                                        sprint['desc'],
+                                        sprint['open'],
+                                        sprint['selected'],
+                                        )
+                for fast_key in sprint['children']:
+                    fast = epic['children'][fast_key]
+                    is_blocked = fast.get('blocker')
+                    Fast_Factory.create_task(sprint,
+                                             fast['desc'],
+                                             fast['open'],
+                                             fast['selected'],
+                                             is_blocked,
+                                             )
+        return self
+
+    def to_yaml(self, yaml_file):
+        task_dict = {}
+
+        for epic in root.children:
+            epic_key = uuid1()
+            task_dict[epic_key] = {'desc': epic.desc,
+                                   'open':  epic.is_open,
+                                   'selected': epic.selected,
+                                   'children': {},
+                                  }
+            epic_dict = task_dict[epic_key]['children']
+            for sprint in epic.children:
+                sprint_key = uuid1()
+                epic_dict[sprint_key] = {'desc': sprint.desc,
+                                         'open':  sprint.is_open,
+                                         'selected': sprint.selected,
+                                         'children': {},
+                                      }
+                sprint_dict = epic_dict[sprint_key]['children']
+                for fast in sprint.children:
+                    fast_key = uuid1()
+                    sprint_dict[fast_key] = {'desc': fast.desc,
+                                             'open':  fast.is_open,
+                                             'selected': fast.selected,
+                                             'blocked': fast.blocked
+                                            }
+
+        with open(yaml_file, 'w') as f:
+            f.write(task_dict)
+
+    def __iter__(self):
+        self.current = self.root
+        return self
+
+    def __next__(self):
+        nxt = self.current.find_next()
+        if nxt == self.current:
+            raise StopIteration('No more tasks')
+
+        self.current = nxt
+        return nxt
+
+    def __getitem__(self, index):
+        for idx, task in enumerate(self, 0):
+            if index == idx:
+                return task

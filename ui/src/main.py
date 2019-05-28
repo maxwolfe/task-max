@@ -5,7 +5,7 @@ import uuid
 import yaml
 
 from collections import defaultdict
-from tasks import Epic, Sprint_Task, Fast_Task, Blocker
+from tasks import Task_List
 from time import sleep
 from threading import Thread
 
@@ -204,55 +204,15 @@ def _get_color(task):
     return COLOR_PAIR['TEXT']
     
 
-def _create_tasks(task_dict):
-    task_list = []
-    for key in task_dict:
-        epic_dict = task_dict[key]
-        epic = Epic(epic_dict['desc'], epic_dict['open'],
-                epic_dict['selected'])
-        for sprint_key in epic_dict['children']:
-            sprint_dict = epic_dict['children'][sprint_key]
-            sprint = Sprint_Task.from_parent(epic, sprint_dict['desc'],
-                    sprint_dict['open'], sprint_dict['selected'])
-            for fast_key in sprint_dict['children']:
-                fast_dict = sprint_dict['children'][fast_key]
-                if fast_dict['blocker']:
-                    Blocker.from_parent(sprint, fast_dict['desc'],
-                            fast_dict['selected'])
-                else:
-                    Fast_Task.from_parent(sprint, fast_dict['desc'],
-                            fast_dict['selected'])
-        task_list.append(epic)
-
-    return task_list
-
-def _get_task_list():
-    task_dict = {}
-    task_items = []
-    task_list = []
-    with open(TASK_PATH, 'r') as f:
-        task_dict = yaml.safe_load(f)
-
-    task_items = _create_tasks(task_dict)
-
-    for epic in task_items:
-        task_list.append(epic)
-        if epic.is_open:
-            for sprint in sorted(epic.children, key=lambda x: x.desc):
-                task_list.append(sprint)
-                if sprint.is_open:
-                    for fast in sorted(sprint.children, key=lambda x: x.desc):
-                        task_list.append(fast)
-    return task_list
-
 def print_tasks(stdscr, y, max_x):
-    task_list = _get_task_list()
+    task_list = Task_List.from_yaml(TASK_PATH)
 
     for y, task in enumerate(task_list, y):
         task_str = str(task)
-        task_attr = _get_color(task)
-        stdscr.addstr(y, 0, task_str + ' ' * (max_x - len(task_str)),
-                task_attr)
+        if task_str:
+            task_attr = _get_color(task)
+            stdscr.addstr(y, 0, task_str + ' ' * (max_x - len(task_str)),
+                    task_attr)
 
     return y, task_list
 
