@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+import os
+
 from collections import defaultdict
 
 
@@ -8,6 +11,10 @@ class GlyphError(Exception):
 class CleanExit(Exception):
     pass
 
+
+FILE_PATH = "files"
+BANNER_PATH = os.path.join(FILE_PATH, 'banner')
+TASK_PATH = os.path.join(FILE_PATH, 'tasks.yaml')
 
 COLORS = {'BLACK': 0,
           'BG': -1,
@@ -44,7 +51,6 @@ LEVEL = {0: (len(USE_COLOR) + 1, COLORS['ORANGE'], COLORS['BG']),
          3: (len(USE_COLOR) + 4, COLORS['PINK'], COLORS['BG']),
         }
 
-COLOR_PAIR = defaultdict(lambda: curses.color_pair(1))
 
 CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## ',
 	      ' ##   ##  ', '  #####   '],
@@ -70,8 +76,6 @@ CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## 
         }
 
 GLYPH_LEN = len(CLOCK[0])
-
-GLYPH_WID = len(CLOCK[0][0])
 
 STRING_ACTIONS = ['a',
                   'b',
