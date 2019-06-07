@@ -219,7 +219,7 @@ class Root(Task):
 
         if task_index == 0:
             return task
-        return self.children[task_index - 1]
+        return self.children[task_index - 1].get_last()
     
     def find_first(self):
         if self.children:
