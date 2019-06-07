@@ -2,5 +2,5 @@
 from threading import Lock
 
 
-is_quit = True
+is_quit = False
 quit_lock = Lock()

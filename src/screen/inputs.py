@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import shared.shared
+import shared.shared as share
 
-from io.outputs import print_tasks
+from screen.outputs import print_tasks
 from shared.constants import *
 from shared.utils import *
 from tasks.actions import Action_Factory
@@ -39,6 +39,6 @@ def accept_input(stdscr, task_line):
         except ValueError:
             pass
         except CleanExit:
-            with shared.quit_lock:
-                shared.is_quit = True
+            with share.quit_lock:
+                share.is_quit = True
             break

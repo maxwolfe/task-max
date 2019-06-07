@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import shared.shared
+import shared.shared as share
 
 from datetime import datetime
 from time import sleep
@@ -74,8 +74,8 @@ def _print_clock(stdscr, y, x):
 
 def update_clock(stdscr):
     while True:
-        with shared.quit_lock:
-            if shared.is_quit:
+        with share.quit_lock:
+            if share.is_quit:
                 break
         max_y, max_x = stdscr.getmaxyx()
         clean(stdscr, 0, max_x, max_y - GLYPH_LEN, max_y)

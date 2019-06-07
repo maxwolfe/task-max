@@ -6,9 +6,9 @@ import yaml
 
 from threading import Thread
 
-from gadgets.clock import update_clock
-from io.inputs import accept_input
-from io.outputs import print_banner
+from gadgets.clock_output import update_clock
+from screen.inputs import accept_input
+from screen.outputs import print_banner
 from shared.constants import *
 from shared.utils import *
 from tasks.tasks import Task_List
