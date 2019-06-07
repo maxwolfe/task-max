@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-import shared
+import shared.shared
 
-from constants import *
 from datetime import datetime
 from time import sleep
-from utils import *
+
+from shared.constants import *
+from shared.utils import *
 
 
 def _combine_glyphs(orig, to_add):

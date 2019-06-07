@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import curses
 
-from constants import *
+from shared.constants import *
 
 COLOR_PAIR = defaultdict(lambda: curses.color_pair(1))
 SETUP = True

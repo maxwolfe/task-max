@@ -4,13 +4,14 @@ import shared
 import uuid
 import yaml
 
-from clock import update_clock
-from constants import *
-from inputs import accept_input
-from outputs import print_banner
-from tasks import Task_List
 from threading import Thread
-from utils import *
+
+from gadgets.clock import update_clock
+from io.inputs import accept_input
+from io.outputs import print_banner
+from shared.constants import *
+from shared.utils import *
+from tasks.tasks import Task_List
 
 
 def main(stdscr):

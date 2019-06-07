@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from constants import *
-from tasks import Subtask_Factory
+from shared.constants import *
+from tasks.tasks import Subtask_Factory
 
 
 class Action:

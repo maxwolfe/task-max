@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-import shared
+import shared.shared
 
-from actions import Action_Factory
-from constants import *
-from outputs import print_tasks
-from utils import *
+from io.outputs import print_tasks
+from shared.constants import *
+from shared.utils import *
+from tasks.actions import Action_Factory
 
 
 def _get_string(stdscr):

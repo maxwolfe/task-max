@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from color import COLOR_PAIR
-from constants import *
+from shared.color import COLOR_PAIR
+from shared.constants import *
 
 
 def clean(stdscr, x_start, x_end, y_start, y_end):

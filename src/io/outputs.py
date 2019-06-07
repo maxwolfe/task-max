@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from color import get_color, COLOR_PAIR
-from constants import *
-from tasks import Task_List
-from utils import *
+from shared.color import get_color, COLOR_PAIR
+from shared.constants import *
+from shared.utils import *
+from tasks.tasks import Task_List
 
 
 def print_banner(stdscr, y, x):
