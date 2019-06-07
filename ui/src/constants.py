@@ -1,6 +1,14 @@
 from collections import defaultdict
 
 
+class GlyphError(Exception):
+    pass
+
+
+class CleanExit(Exception):
+    pass
+
+
 COLORS = {'BLACK': 0,
           'BG': -1,
           'RED': 196, 
@@ -68,4 +76,5 @@ GLYPH_WID = len(CLOCK[0][0])
 STRING_ACTIONS = ['a',
                   'b',
                   'e',
+                  'm',
                  ]

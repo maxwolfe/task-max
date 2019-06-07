@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+from constants import *
 from tasks import Subtask_Factory
+
 
 class Action:
     def __init__(self, task_function, *params):
@@ -10,59 +12,40 @@ class Action:
     def do_action(self):
         return self.task_function(*self.params)
 
+    @classmethod
+    def from_task(cls, task, *params):
+        return cls(task, *params)
+
 
 class Move_Down(Action):
     def __init__(self, task):
         super().__init__(task.select, 'next')
-
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 
 class Move_Up(Action):
     def __init__(self, task):
         super().__init__(task.select, 'previous')
 
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
-
 
 class Open(Action):
     def __init__(self, task):
         super().__init__(task.toggle_open)
-
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 
 class Add(Action):
     def __init__(self, task, desc):
         super().__init__(Subtask_Factory.create_task, task, desc, False)
 
-    @classmethod
-    def from_task(cls, task, desc):
-        return cls(task, desc)
-
 
 class Blocker(Action):
     def __init__(self, task, desc):
         super().__init__(Subtask_Factory.create_task, task, desc, True)
-
-    @classmethod
-    def from_task(cls, task, desc):
-        return cls(task, desc)
 
 
 class Delete(Action):
     def __init__(self, task):
         super().__init__(task.__del__)
 
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 class Ecreate(Action):
     def __init__(self, task, desc):
@@ -70,41 +53,31 @@ class Ecreate(Action):
         super().__init__(Subtask_Factory.create_task, root, desc, True)
         task.toggle_select()
 
-    @classmethod
-    def from_task(cls, task, desc):
-        return cls(task, desc)
 
 class Move_Top(Action):
     def __init__(self, task):
         super().__init__(task.select, 'first')
     
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 class Move_Bottom(Action):
     def __init__(self, task):
         super().__init__(task.select, 'last')
 
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 class Move_After(Action):
     def __init__(self, task):
         super().__init__(task.select, 'after')
 
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
 
 class Move_Before(Action):
     def __init__(self, task):
         super().__init__(task.select, 'before')
 
-    @classmethod
-    def from_task(cls, task):
-        return cls(task)
+
+class Modify(Action):
+    def __init__(self, task, desc):
+        super().__init__(setattr, task, 'desc', desc)
+
 
 class Action_Factory:
     def __init__(self, action):
@@ -132,8 +105,12 @@ class Action_Factory:
             return cls(Move_After(task))
         elif key == 'N':
             return cls(Move_Before(task))
+        elif key == 'm':
+            return cls(Modify(task, *params))
         elif key =='o':
             return cls(Open(task))
+        elif key == 'q':
+            raise CleanExit('Exit Code Entered')
         
     @staticmethod
     def do_action(key, task, *params):

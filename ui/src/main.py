@@ -8,15 +8,13 @@ from actions import Action_Factory
 from constants import *
 from tasks import Task_List
 from time import sleep
-from threading import Thread
+from threading import Thread, Lock
 
 BANNER_PATH = 'ui/files/banner'
 TASK_PATH = 'ui/files/tasks.yaml'
 
-
-class GlyphError(Exception):
-    pass
-
+CONTINUE = True
+clock_lock = Lock()
 
 def setup_colors():
     curses.start_color()
@@ -108,10 +106,13 @@ def clean(stdscr, x_start, x_end, y_start, y_end):
 
 def update_clock(stdscr):
     while True:
+        with clock_lock:
+            if not CONTINUE:
+                break
         max_y, max_x = stdscr.getmaxyx()
         clean(stdscr, 0, max_x, max_y - GLYPH_LEN, max_y)
         print_clock(stdscr, max_y, max_x)
-        sleep(10)
+        sleep(1)
 
 def print_banner(stdscr, y, x):
     with open(BANNER_PATH, 'r') as f:
@@ -183,7 +184,7 @@ def clear(stdscr, top, bottom, max_x):
 
 def accept_input(stdscr, task_list, task_line):
     max_y, max_x = stdscr.getmaxyx()
-
+    global CONTINUE
 
     while True:
         next_line, task_list = print_tasks(stdscr, task_line, max_x)
@@ -192,8 +193,12 @@ def accept_input(stdscr, task_list, task_line):
             handle(stdscr, chr(read_char), task_list, task_line, max_x)
             next_line, task_list = print_tasks(stdscr, task_line, max_x)
             clear(stdscr, next_line-1, max_y - len(CLOCK[0]), max_x)
-        except ValueError as e:
+        except ValueError:
             pass
+        except CleanExit:
+            with clock_lock:
+                CONTINUE = False
+            break
 
 def main(stdscr):
     stdscr.nodelay(1)
@@ -210,6 +215,7 @@ def main(stdscr):
     thread.start()
 
     accept_input(stdscr, task_list, task_line)
+    thread.join()
 
 if __name__ == '__main__':
     curses.wrapper(main)

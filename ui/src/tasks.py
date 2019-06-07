@@ -15,9 +15,9 @@ class Task:
         self.parent = None
         self.children = []
         if is_open:
-            self._is_open = True
+            self.is_open = True
         else:
-            self._is_open = False
+            self.is_open = False
         if is_selected:
             self.selected= True
         else:
@@ -32,12 +32,20 @@ class Task:
         return self
 
     @property
+    def desc(self):
+        return self._desc
+
+    @desc.setter
+    def desc(self, desc):
+        self._desc = desc
+
+    @property
     def is_open(self):
         return self._is_open
 
     @is_open.setter
     def is_open(self, opened):
-        if opened and len(self.children) > 0:
+        if opened:
             self._is_open = True
         else:
             self._is_open = False
