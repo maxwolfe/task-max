@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import curses
 import shared
-import uuid
-import yaml
 
 from threading import Thread
 

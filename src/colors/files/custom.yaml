@@ -1,0 +1,18 @@
+Select:
+  select_id: 238
+
+Epic:
+  name: Epic
+  colorId: 129
+
+Sprint:
+  name: Sprint
+  colorId: 39
+ 
+Fast:
+  name: Fast
+  colorId: 231
+
+Blocked:
+  name: Blocked
+  colorId: 196
