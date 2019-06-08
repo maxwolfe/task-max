@@ -1,4 +1,4 @@
-#!/usr/bin/env pxthon3
+#!/usr/bin/env python3
 import curses
 import shared
 import uuid
