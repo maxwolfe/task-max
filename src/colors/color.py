@@ -3,7 +3,12 @@ import curses
 import json
 import yaml
 
-from shared.constants import *
+from os import path
+
+BASE_PATH = path.dirname(__file__)
+FILES_PATH = path.join(BASE_PATH, 'files')
+CUSTOM_COLOR_PATH = path.join(FILES_PATH, 'custom.yaml')
+XTERM_PATH = path.join(FILES_PATH, 'xterm.json')
 
 BG_DEFAULT = -1
 SELECT_DEFAULT = 238
@@ -14,6 +19,7 @@ COLOR_PAIR = {'Highlight': curses.A_STANDOUT,
               'Dim': curses.A_DIM,
               'Line': curses.A_UNDERLINE,
              }
+
 
 class LoadColors:
     @staticmethod
@@ -34,7 +40,7 @@ class LoadColors:
     
     @staticmethod
     def _load_colors_from_dict(color_dict):
-        for key in sorted(color_dict.keys()):
+        for key in color_dict.keys():
             color_entry = color_dict[key]
             str_key = color_entry.get('name')
             byte_key = color_entry.get('colorId')
@@ -81,14 +87,15 @@ class LoadColors:
 
         LoadColors._load_colors_from_dict(color_dict)
     
-class SetupColors:
-    SETUP = True
 
+class SetupColors:
     @staticmethod
     def setup():
-        if SetupColors.SETUP:
+        try:
+            SetupColors.setup_done
+        except AttributeError:
             SetupColors._setup_colors()
-            SetupColors.SETUP = False
+            SetupColors.setup_done = True
 
     @staticmethod
     def _setup_colors():
@@ -96,7 +103,7 @@ class SetupColors:
         curses.use_default_colors()
 
         LoadColors.load()
-        print (LoadColors.last)
+
 
 def get_color(color):
     SetupColors.setup()

@@ -7,9 +7,7 @@ from threading import Thread
 from gadgets.clock_output import update_clock
 from screen.inputs import accept_input
 from screen.outputs import print_banner
-from shared.constants import *
 from shared.utils import *
-from tasks.tasks import Task_List
 
 
 def main(stdscr):

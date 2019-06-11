@@ -13,3 +13,12 @@ Fast:
 Blocked:
   name: Blocked
   colorId: 196
+
+
+ClockG:
+  name: Clock_Good
+  colorId: 2
+
+ClockB:
+  name: Clock_Bad
+  colorId: 196

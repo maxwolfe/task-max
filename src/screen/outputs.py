@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+from os import path
+
 from colors.color import get_color
-from shared.constants import *
 from shared.utils import *
 from tasks.tasks import Task_List
+
+BASE_PATH = path.dirname(__file__)
+FILES_PATH = path.join(BASE_PATH, 'files')
+BANNER_PATH = path.join(FILES_PATH, 'banner')
+TASK_PATH = path.join(FILES_PATH, 'tasks.yaml')
 
 
 def print_banner(stdscr, y, x):
@@ -10,7 +16,7 @@ def print_banner(stdscr, y, x):
         banner = f.read()
 
     for y, line in enumerate(banner.splitlines(), y):
-        stdscr.addstr(y, x, line, get_color( 'BOLD' ))
+        stdscr.addstr(y, x, line, get_color('Bold'))
 
     return y
 

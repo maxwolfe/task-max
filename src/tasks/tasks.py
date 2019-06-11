@@ -15,7 +15,7 @@ class Task:
         self.parent = None
         self.children = []
 
-        self._color = 'White'
+        self._color = ''
 
         if is_open:
             self.is_open = True

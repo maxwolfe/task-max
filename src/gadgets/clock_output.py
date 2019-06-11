@@ -5,8 +5,34 @@ from datetime import datetime
 from time import sleep
 
 from colors.color import get_color
-from shared.constants import *
 from shared.utils import *
+
+CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## ',
+	      ' ##   ##  ', '  #####   '],
+         1: ['    ##    ', '  ####    ', '    ##    ', '    ##    ', '    ##    ',
+	       '    ##    ', '  ######  '],
+	 2: [' #######  ', '##     ## ', '       ## ', ' #######  ', '##        ',
+	       '##        ', '######### '],
+	 3: [' #######  ', '##     ## ', '       ## ', ' #######  ', '       ## ',
+	       '##     ## ', ' #######  '],
+	 4: ['##        ', '##    ##  ', '##    ##  ', '##    ##  ', '######### ',
+	       '      ##  ', '      ##  '],
+	 5: [' ######## ', ' ##       ', ' ##       ', ' #######  ', '       ## ',
+	       ' ##    ## ', '  ######  '],
+	 6: [' #######  ', '##     ## ', '##        ', '########  ', '##     ## ',
+	       '##     ## ', ' #######  '],
+	 7: [' ######## ', ' ##    ## ', '     ##   ', '    ##    ', '   ##     ',
+	       '   ##     ', '   ##     '],
+	 8: [' #######  ', '##     ## ', '##     ## ', ' #######  ', '##     ## ',
+	       '##     ## ', ' #######  '],
+	 9: [' #######  ', '##     ## ', '##     ## ', ' ######## ', '       ## ',
+	       '##     ## ', ' #######  '],
+	 ':': ['   ', '   ', ' # ', '   ', ' # ', '   ', '   '],
+        }
+
+
+class GlyphError(Exception):
+    pass
 
 
 def _combine_glyphs(orig, to_add):
@@ -24,7 +50,7 @@ def _val_to_glyph(num):
         num %= 10
     digits.append(num)
 
-    glyphs = [''] * GLYPH_LEN
+    glyphs = [''] * get_glyph_len()
     for digit in digits:
         glyph = CLOCK[digit]
         _combine_glyphs(glyphs, glyph)
@@ -40,11 +66,11 @@ def _determine_clock():
     hours, minutes = int(hours), int(minutes)
 
     # Default
-    color = get_color( 'GOOD' )
+    color = get_color('Clock_Good')
 
     # After Hours, Go Home!
     if hours < 9 or hours > 18:
-        color = get_color( 'ERROR' )
+        color = get_color('Clock_Bad')
 
     # TODO: Add Meeting Now / Meeting Soon
     
@@ -79,6 +105,9 @@ def update_clock(stdscr):
             if share.is_quit:
                 break
         max_y, max_x = stdscr.getmaxyx()
-        clean(stdscr, 0, max_x, max_y - GLYPH_LEN, max_y)
+        clean(stdscr, 0, max_x, max_y - get_glyph_len(), max_y)
         _print_clock(stdscr, max_y, max_x)
         sleep(1)
+
+def get_glyph_len():
+    return len(CLOCK[0])

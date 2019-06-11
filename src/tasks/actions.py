@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-from shared.constants import *
 from tasks.tasks import Subtask_Factory
+
+
+class CleanExit(Exception):
+    pass
 
 
 class Action:
