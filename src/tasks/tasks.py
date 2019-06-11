@@ -14,6 +14,9 @@ class Task:
         self.priority = 0
         self.parent = None
         self.children = []
+
+        self._color = 'White'
+
         if is_open:
             self.is_open = True
         else:
@@ -38,6 +41,13 @@ class Task:
     @desc.setter
     def desc(self, desc):
         self._desc = desc
+
+    @property
+    def color(self):
+        if self.selected:
+            return 'Select_{}'.format(self._color)
+        else:
+            return self._color
 
     @property
     def is_open(self):
@@ -241,6 +251,7 @@ class Root(Task):
 class Epic(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, is_open, is_selected)
+        self._color = 'Epic'
 
     @classmethod
     def from_parent(cls, parent, desc, is_open, is_selected):
@@ -253,6 +264,7 @@ class Sprint_Task(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, is_open, is_selected)
         self.priority = 1
+        self._color = 'Sprint'
 
     @classmethod
     def from_parent(cls, parent, desc, is_open, is_selected):
@@ -265,6 +277,7 @@ class Fast_Task(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, False, is_selected)
         self.priority = 2
+        self._color = 'Fast'
 
     @classmethod
     def from_parent(cls, parent, desc, is_selected):
@@ -277,6 +290,7 @@ class Blocker(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, False, is_selected)
         self.priority = 2
+        self._color = 'Blocked'
 
     @classmethod
     def from_parent(cls, parent, desc, is_selected):

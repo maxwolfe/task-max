@@ -4,6 +4,7 @@ import shared.shared as share
 from datetime import datetime
 from time import sleep
 
+from colors.color import get_color
 from shared.constants import *
 from shared.utils import *
 
@@ -39,11 +40,11 @@ def _determine_clock():
     hours, minutes = int(hours), int(minutes)
 
     # Default
-    color = COLOR_PAIR['GOOD']
+    color = get_color( 'GOOD' )
 
     # After Hours, Go Home!
     if hours < 9 or hours > 18:
-        color = COLOR_PAIR['ERROR']
+        color = get_color( 'ERROR' )
 
     # TODO: Add Meeting Now / Meeting Soon
     

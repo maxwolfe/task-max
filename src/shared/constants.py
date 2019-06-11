@@ -19,8 +19,9 @@ COLOR_PATH = path.join(SRC_PATH, 'colors')
 XTERM_PATH = path.join(COLOR_PATH, 'files', 'xterm.json')
 CUSTOM_COLOR_PATH = path.join(COLOR_PATH, 'files', 'custom.yaml')
 
-#BANNER_PATH = path.join(FILE_PATH, 'banner')
-#TASK_PATH = path.join(FILE_PATH, 'tasks.yaml')
+FILE_PATH = path.join(SRC_PATH, '..', 'files')
+BANNER_PATH = path.join(FILE_PATH, 'banner')
+TASK_PATH = path.join(FILE_PATH, 'tasks.yaml')
 
 
 CLOCK = {0: ['  #####   ', ' ##   ##  ', '##     ## ', '##     ## ', '##     ## ',
