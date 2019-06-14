@@ -136,9 +136,17 @@ class Task:
             return self.parent.find_after(self)
         return task.get_last()
     
+    def find_after_closed(self, task):
+        task_index = self.children.index(task)
+
+        if task_index + 1 < len(self.children):
+            return self.children[task_index + 1]
+        
+        return task
+
     def find_next_closed(self):
         if self.parent:
-            return self.parent.find_after(self)
+            return self.parent.find_after_closed(self)
 
     def find_previous(self):
         if self.parent:
@@ -154,9 +162,8 @@ class Task:
         task_index = self.children.index(task)
 
         if task_index == 0:
-            if self.parent:
-                return self
             return task
+
         return self.children[task_index - 1]
 
     def find_before(self, task):
@@ -226,7 +233,7 @@ class Root(Task):
         super().__init__('The Root', True, False)
 
     def __str__(self):
-        return None
+        return ""
 
 
 class Epic(Task):
