@@ -163,7 +163,9 @@ class Task:
         task_index = self.children.index(task)
 
         if task_index == 0:
-            return self
+            if self.parent:
+                return self
+            return task
         return self.children[task_index - 1].get_last()
 
     def select(self, choice):
