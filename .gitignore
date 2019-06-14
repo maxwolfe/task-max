@@ -2,4 +2,4 @@ venv/
 *.swp
 *.swo
 *__pycache__
-files/tasks.yaml
+src/screen/files/tasks.yaml
