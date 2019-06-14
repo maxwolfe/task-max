@@ -102,6 +102,9 @@ class Task:
     def find_first(self):
         if self.parent:
             return self.parent.find_first()
+        if self.children:
+            return self.children[0]
+        return self
 
     def find_last(self):
         return self.get_root().get_last()
@@ -126,6 +129,8 @@ class Task:
         if self.parent:
             return self.parent.find_after(self)
 
+        return self
+
     # find after if possible
     def find_after(self, task):
         task_index = self.children.index(task)
@@ -133,14 +138,18 @@ class Task:
         if task_index + 1 < len(self.children):
             return self.children[task_index + 1]
 
-        return self.parent.find_after(self)
+        if self.parent:
+            return self.parent.find_after(self)
+        return task.get_last()
     
     def find_next_closed(self):
         if self.parent:
             return self.parent.find_after(self)
 
     def find_previous(self):
-        return self.parent.find_before(self)
+        if self.parent:
+            return self.parent.find_before(self)
+        return self
 
     def find_previous_closed(self):
         return self.parent.find_before_closed(self)
@@ -215,34 +224,6 @@ class Task:
 class Root(Task):
     def __init__(self):
         super().__init__('The Root', True, False)
-
-    def find_next(self):
-        if self.children:
-            return self.children[0]
-        return self
-
-    def find_previous(self):
-        return self
-
-    def find_after(self, task):
-        task_index = self.children.index(task)
-
-        if task_index + 1 < len(self.children):
-            return self.children[task_index + 1]
-
-        return task.get_last()
-
-    def find_before(self, task):
-        task_index = self.children.index(task)
-
-        if task_index == 0:
-            return task
-        return self.children[task_index - 1].get_last()
-    
-    def find_first(self):
-        if self.children:
-            return self.children[0]
-        return self
 
     def __str__(self):
         return None
