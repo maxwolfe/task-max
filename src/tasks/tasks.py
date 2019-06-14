@@ -88,16 +88,10 @@ class Task:
         return task_dict
 
     def toggle_open(self):
-        if self.is_open:
-            self.is_open = False
-        else:
-            self.is_open = True
+        self.is_open = not self.is_open
 
     def toggle_select(self):
-        if self.selected:
-            self.selected = False
-        else:
-            self.selected = True
+        self.selected = not self.selected
 
     def find_first(self):
         if self.parent:
@@ -149,6 +143,8 @@ class Task:
     def find_previous(self):
         if self.parent:
             return self.parent.find_before(self)
+        if self.children:
+            return self.children[0]
         return self
 
     def find_previous_closed(self):
@@ -158,7 +154,9 @@ class Task:
         task_index = self.children.index(task)
 
         if task_index == 0:
-            return self
+            if self.parent:
+                return self
+            return task
         return self.children[task_index - 1]
 
     def find_before(self, task):
