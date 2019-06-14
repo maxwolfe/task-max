@@ -241,24 +241,12 @@ class Epic(Task):
         super().__init__(desc, is_open, is_selected)
         self._color = 'Epic'
 
-    @classmethod
-    def from_parent(cls, parent, desc, is_open, is_selected):
-        if not isinstance(parent, Root):
-            raise InvalidTask("Sprint Task must be created from an Epic")
-        return super().from_parent(parent, desc, is_open, is_selected)
-
 
 class Sprint_Task(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, is_open, is_selected)
         self.priority = 1
         self._color = 'Sprint'
-
-    @classmethod
-    def from_parent(cls, parent, desc, is_open, is_selected):
-        if not isinstance(parent, Epic):
-            raise InvalidTask("Sprint Task must be created from an Epic")
-        return super().from_parent(parent, desc, is_open, is_selected)
 
 
 class Fast_Task(Task):
@@ -267,24 +255,12 @@ class Fast_Task(Task):
         self.priority = 2
         self._color = 'Fast'
 
-    @classmethod
-    def from_parent(cls, parent, desc, is_selected):
-        if not isinstance(parent, Sprint_Task):
-            raise InvalidTask("Fast Task must be created from a Sprint Task")
-        return super().from_parent(parent, desc, False, is_selected)
-
 
 class Blocker(Task):
     def __init__(self, desc, is_open, is_selected):
         super().__init__(desc, False, is_selected)
         self.priority = 2
         self._color = 'Blocked'
-
-    @classmethod
-    def from_parent(cls, parent, desc, is_selected):
-        if not isinstance(parent, Sprint_Task):
-            raise InvalidTask("Blocker must be created from a Sprint Task")
-        return super().from_parent(parent, desc, False, is_selected)
 
     @property
     def blocked(self):
@@ -295,12 +271,46 @@ class Fast_Factory:
     @staticmethod
     def create_task(parent, desc, is_selected, is_blocked):
         if is_blocked:
-            return Blocker.from_parent(parent, desc, is_selected)
+            return Blocker.from_parent(parent, desc, False, is_selected)
         else:
-            return Fast_Task.from_parent(parent, desc, is_selected)
+            return Fast_Task.from_parent(parent, desc, False, is_selected)
 
 
 class Subtask_Factory:
+    @staticmethod
+    def add_task(
+            parent,
+            desc,
+            is_open,
+            is_selected,
+            is_blocker,
+    ):
+        task = None
+
+        if isinstance(parent, Root):
+            task = Epic.from_parent(
+                    parent,
+                    desc,
+                    is_open,
+                    is_selected,
+            )
+        if isinstance(parent, Epic):
+            task = Sprint_Task.from_parent(
+                    parent,
+                    desc,
+                    is_open,
+                    is_selected,
+            )
+        elif isinstance(parent, Sprint_Task):
+            task = Fast_Factory.create_task(
+                    parent,
+                    desc,
+                    is_selected,
+                    is_blocker,
+            )
+
+        return task
+
     @staticmethod
     def create_task(parent, desc, is_blocker):
         task = None
@@ -320,62 +330,70 @@ class Task_List:
     def __init__(self):
         self.root = Root()
 
+    @staticmethod
+    def create_tasks(
+            root,
+            sub_dict,
+    ):
+        if not sub_dict:
+            return
+
+        for key in sub_dict:
+            obj = sub_dict[key]
+            new_root = Subtask_Factory.add_task(
+                    root,
+                    obj.get('desc'),
+                    obj.get('open'),
+                    obj.get('selected'),
+                    obj.get('blocked'),
+            )
+
+            Task_List.create_tasks(
+                    new_root,
+                    obj.get('children'),
+            )
+
+    @staticmethod
+    def create_dict(
+            root,
+            sub_dict,
+    ):
+        for obj in sorted(root.children, key=lambda x: x.desc):
+            key = str(uuid4())
+            sub_dict[key] = {
+                    'desc': obj.desc,
+                    'open': obj.is_open,
+                    'selected': obj.selected,
+                    'blocked': obj.blocked,
+                    'children': {},
+            }
+
+            Task_List.create_dict(
+                    obj,
+                    sub_dict[key]['children'],
+            )
+
     @classmethod
     def from_yaml(cls, yaml_file):
         self = cls()
         with open(yaml_file, 'r') as f:
             task_dict = yaml.safe_load(f)
+         
+        Task_List.create_tasks(
+                self.root,
+                task_dict,
+        )
 
-        for epic_key in task_dict:
-            epic = task_dict[epic_key]
-            epic_obj = Epic.from_parent(self.root,
-                                        epic['desc'],
-                                        epic['open'],
-                                        epic['selected'],
-                                       )
-            for sprint_key in epic['children']:
-                sprint = epic['children'][sprint_key]
-                sprint_obj = Sprint_Task.from_parent(epic_obj,
-                                                     sprint['desc'],
-                                                     sprint['open'],
-                                                     sprint['selected'],
-                                                    )
-                for fast_key in sprint['children']:
-                    fast = sprint['children'][fast_key]
-                    is_blocked = fast.get('blocked')
-                    Fast_Factory.create_task(sprint_obj,
-                                             fast['desc'],
-                                             fast['selected'],
-                                             is_blocked,
-                                             )
         return self
 
     def to_yaml(self, yaml_file):
         task_dict = {}
 
-        for epic in sorted(self.root.children, key=lambda x: x.desc):
-            epic_key = str(uuid4())
-            task_dict[epic_key] = {'desc': epic.desc,
-                                   'open':  epic.is_open,
-                                   'selected': epic.selected,
-                                   'children': {},
-                                  }
-            epic_dict = task_dict[epic_key]['children']
-            for sprint in sorted(epic.children, key=lambda x: x.desc):
-                sprint_key = str(uuid4())
-                epic_dict[sprint_key] = {'desc': sprint.desc,
-                                         'open':  sprint.is_open,
-                                         'selected': sprint.selected,
-                                         'children': {},
-                                        }
-                sprint_dict = epic_dict[sprint_key]['children']
-                for fast in sorted(sprint.children, key=lambda x: x.desc):
-                    fast_key = str(uuid4())
-                    sprint_dict[fast_key] = {'desc': fast.desc,
-                                             'open':  fast.is_open,
-                                             'selected': fast.selected,
-                                             'blocked': fast.blocked,
-                                            }
+        Task_List.create_dict(
+                self.root,
+                task_dict,
+        )
+
         with open(yaml_file, 'w') as f:
             yaml.dump(task_dict, f)
 
