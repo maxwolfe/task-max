@@ -1,56 +1,93 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import shared.shared as share
 
-from os import path
-
-from gadgets.clock_output import get_glyph_len
-from screen.outputs import print_tasks
-from shared.utils import *
+from gadgets.clock_output import Clock
+from screen.outputs import Tasks
+from shared.utils import FileSearcher, Screen
 from tasks.actions import Action_Factory, CleanExit
 
-BASE_PATH = path.dirname(__file__)
-FILES_PATH = path.join(BASE_PATH, 'files')
-TASK_PATH = path.join(FILES_PATH, 'tasks.yaml')
 
-STRING_ACTIONS = ['a',
-                  'b',
-                  'e',
-                  'm',
-                 ]
+class TaskHandler:
+    _task_path = FileSearcher.find_file(
+            __file__,
+            'tasks.yaml',
+    )
+    _string_actions = [
+            'a',
+            'b',
+            'e',
+            'm',
+     ]
 
+    @staticmethod
+    def _get_string(
+            stdscr,
+    ):
+        stdscr.nodelay(0)
+        read_str = stdscr.getstr()
+        stdscr.nodelay(1)
 
-def _get_string(stdscr):
-    stdscr.nodelay(0)
-    read_str = stdscr.getstr()
-    stdscr.nodelay(1)
-    return read_str
+        return read_str.decode('utf-8')
 
-def _handle(stdscr, action, task_list, y, max_x):
-    current = task_list.get_selected()
+    @staticmethod
+    def _handle(
+            stdscr,
+            action,
+            task_list,
+            y,
+            max_x,
+    ):
+        current = task_list.get_selected()
 
-    if action in STRING_ACTIONS:
-        read_str = _get_string(stdscr)
-        read_str = read_str.decode('utf-8')
-        Action_Factory.do_action(action, current, read_str)
-    else:
-        Action_Factory.do_action(action, current)
-    
-    task_list.to_yaml(TASK_PATH)
+        if action in TaskHandler._string_actions:
+            read_str = TaskHandler._get_string(
+                    stdscr,
+            )
+            Action_Factory.do_action(
+                    action,
+                    current,
+                    read_str,
+            )
+        else:
+            Action_Factory.do_action(
+                    action,
+                    current,
+            )
 
-def accept_input(stdscr, task_line):
-    max_y, max_x = stdscr.getmaxyx()
-    global CONTINUE
+    @staticmethod
+    def accept_input(
+            stdscr,
+            task_line,
+    ):
+        while True:
+            max_y, max_x = stdscr.getmaxyx()
+            next_line, task_list = Tasks.print_tasks(
+                    stdscr,
+                    task_line,
+                    max_x,
+            )
+            read_char = stdscr.getch()
 
-    while True:
-        next_line, task_list = print_tasks(stdscr, task_line, max_x)
-        read_char = stdscr.getch()
-        try:
-            _handle(stdscr, chr(read_char), task_list, task_line, max_x)
-            next_line, task_list = print_tasks(stdscr, task_line, max_x)
-            clear(stdscr, next_line-1, max_y - get_glyph_len(), max_x)
-        except ValueError:
-            pass
-        except CleanExit:
-            with share.quit_lock:
-                share.is_quit = True
-            break
+            try:
+                TaskHandler._handle(
+                        stdscr,
+                        chr(read_char),
+                        task_list,
+                        task_line,
+                        max_x,
+                )
+                Screen.clear(
+                        stdscr,
+                        next_line-1,
+                        max_y - Clock.get_glyph_len(),
+                        max_x,
+                )
+            except ValueError:
+                pass
+            except CleanExit:
+                with share.quit_lock:
+                    share.is_quit = True
+
+                task_list.to_yaml(TaskHandler._task_path)
+
+                return

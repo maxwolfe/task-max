@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 import curses
 
-from time import sleep
 from threading import Thread
 
-from gadgets.clock_output import update_clock
-from screen.inputs import accept_input
-from screen.outputs import print_banner, loop_banner
+from gadgets.clock_output import Clock
+from screen.inputs import TaskHandler
+from screen.outputs import Banner
 from screen.resize import resize
-from shared.utils import *
 
 
 def main(stdscr):
@@ -17,11 +15,11 @@ def main(stdscr):
     max_y, max_x = stdscr.getmaxyx()
 
     # Give line space
-    task_line = print_banner(stdscr, 0, 0) + 2
+    task_line = Banner.banner_lines() + 1
 
     actions = [
             (
-                loop_banner, 
+                Banner.loop_banner,
                 (
                     stdscr,
                     0,
@@ -37,20 +35,19 @@ def main(stdscr):
                 ),
             ),
             (
-                update_clock,
+                Clock.update_clock,
                 (
                     stdscr,
                 )
             ),
             (
-                accept_input,
+                TaskHandler.accept_input,
                 (
                     stdscr,
                     task_line,
                 ),
             ),
     ]
-
 
     thread_list = []
 
@@ -64,6 +61,7 @@ def main(stdscr):
 
     for thread in thread_list:
         thread.join()
+
 
 if __name__ == '__main__':
     curses.wrapper(main)
