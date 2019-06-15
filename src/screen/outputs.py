@@ -1,5 +1,8 @@
 #!/usr/bin/env python
+import shared.shared as share
+
 from os import path
+from time import sleep
 
 from colors.color import get_color
 from shared.utils import *
@@ -31,3 +34,19 @@ def print_tasks(stdscr, y, max_x):
                     task_attr)
 
     return y, task_list
+
+def loop_banner(
+        stdscr,
+        y,
+        x,
+):
+    while True:
+        with share.quit_lock:
+            if share.is_quit:
+                break
+        print_banner(
+                stdscr,
+                y,
+                x,
+        )
+        sleep(1)
