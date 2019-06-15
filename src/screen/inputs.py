@@ -66,6 +66,12 @@ class TaskHandler:
                     task_line,
                     max_x,
             )
+            Screen.clear(
+                    stdscr,
+                    next_line,
+                    max_y - Clock.get_glyph_len(),
+                    max_x,
+            )
             read_char = stdscr.getch()
 
             try:
@@ -74,12 +80,6 @@ class TaskHandler:
                         chr(read_char),
                         task_list,
                         task_line,
-                        max_x,
-                )
-                Screen.clear(
-                        stdscr,
-                        next_line-1,
-                        max_y - Clock.get_glyph_len(),
                         max_x,
                 )
             except ValueError:

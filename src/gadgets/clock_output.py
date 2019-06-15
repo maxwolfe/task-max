@@ -5,6 +5,7 @@ from datetime import datetime
 from time import sleep
 
 from colors.color import Colors
+from gadgets.clock_glyphs import clock_glyphs
 from shared.utils import Screen
 
 
@@ -13,108 +14,23 @@ class GlyphError(Exception):
 
 
 class Clock:
-    _clock_glyphs = {
-            0: [
-                '  #####   ',
-                ' ##   ##  ',
-                '##     ## ',
-                '##     ## ',
-                '##     ## ',
-                ' ##   ##  ',
-                '  #####   ',
-            ],
-            1: [
-                '    ##    ',
-                '  ####    ',
-                '    ##    ',
-                '    ##    ',
-                '    ##    ',
-                '    ##    ',
-                '  ######  ',
-            ],
-            2: [
-                 ' #######  ',
-                 '##     ## ',
-                 '       ## ',
-                 ' #######  ',
-                 '##        ',
-                 '##        ',
-                 '######### ',
-            ],
-            3: [
-                ' #######  ',
-                '##     ## ',
-                '       ## ',
-                ' #######  ',
-                '       ## ',
-                '##     ## ',
-                ' #######  ',
-            ],
-            4: [
-                '##        ',
-                '##    ##  ',
-                '##    ##  ',
-                '##    ##  ',
-                '######### ',
-                '      ##  ',
-                '      ##  ',
-            ],
-            5: [
-                ' ######## ',
-                ' ##       ',
-                ' ##       ',
-                ' #######  ',
-                '       ## ',
-                ' ##    ## ',
-                '  ######  ',
-            ],
-            6: [
-                ' #######  ',
-                '##     ## ',
-                '##        ',
-                '########  ',
-                '##     ## ',
-                '##     ## ',
-                ' #######  ',
-            ],
-            7: [
-                ' ######## ',
-                ' ##    ## ',
-                '     ##   ',
-                '    ##    ',
-                '   ##     ',
-                '   ##     ',
-                '   ##     ',
-            ],
-            8: [
-                ' #######  ',
-                '##     ## ',
-                '##     ## ',
-                ' #######  ',
-                '##     ## ',
-                '##     ## ',
-                ' #######  ',
-            ],
-            9: [
-                ' #######  ',
-                '##     ## ',
-                '##     ## ',
-                ' ######## ',
-                '       ## ',
-                '##     ## ',
-                ' #######  ',
-            ],
-            ':': [
-                    '   ',
-                    '   ',
-                    ' # ',
-                    '   ',
-                    ' # ',
-                    '   ',
-                    '   ',
-            ],
-    }
     _known_times = {}
+
+    # EXTEND: Color ranges + Corresponding Colors
+    _color_ranges = [
+            (
+                (
+                    9,
+                    18,
+                ),
+                # MODIFY: Default Color for 9-7 range
+                'Clock_Good',
+            ),
+    ]
+
+    # MODIFY: Defaults
+    _default_color = 'Clock_Bad'
+    _24_hour_clock = False
 
     @staticmethod
     def _combine_glyphs(
@@ -148,7 +64,7 @@ class Clock:
         glyphs = [''] * Clock.get_glyph_len()
 
         for digit in digits:
-            glyph = Clock._clock_glyphs.get(digit)
+            glyph = clock_glyphs.get(digit)
             Clock._combine_glyphs(glyphs, glyph)
 
         return glyphs
@@ -173,11 +89,11 @@ class Clock:
         if not glyphs:
             glyphs = Clock._combine_glyphs(
                     Clock._val_to_glyph(
-                        hours % 12,
+                        hours if Clock._24_hour_clock else hours % 12,
                         False,
                     ),
                     Clock._combine_glyphs(
-                        Clock._clock_glyphs.get(':').copy(),
+                        clock_glyphs.get(':').copy(),
                         Clock._val_to_glyph(
                             minutes,
                             True,
@@ -205,10 +121,11 @@ class Clock:
     ):
         hours, minutes = time
 
-        if hours < 9 or hours > 18:
-            return Colors.get_color('Clock_Bad')
+        for (start, end), color in Clock._color_ranges:
+            if hours >= start and hours <= end:
+                return Colors.get_color(color)
 
-        return Colors.get_color('Clock_Good')
+        return Colors.get_color(Clock._default_color)
 
     @staticmethod
     def _print_clock(
@@ -259,4 +176,4 @@ class Clock:
 
     @staticmethod
     def get_glyph_len():
-        return len(Clock._clock_glyphs.get(0))
+        return len(clock_glyphs.get(0))
