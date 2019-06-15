@@ -8,10 +8,12 @@ from tasks.actions import Action_Factory, CleanExit
 
 
 class TaskHandler:
+    # MODIFY: Task filename
     _task_path = FileSearcher.find_file(
             __file__,
             'tasks.yaml',
     )
+    # EXTEND: Add more string actions
     _string_actions = [
             'a',
             'b',

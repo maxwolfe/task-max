@@ -13,7 +13,7 @@ def resize(
     while True:
         with share.quit_lock:
             if share.is_quit:
-                break
+                return
 
         if curses.is_term_resized(y, x):
             y, x = stdscr.getmaxyx()

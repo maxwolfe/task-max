@@ -9,12 +9,14 @@ from tasks.tasks import Task_List
 
 
 class Banner:
+    _banner = None
+
+    # MODIFY: Defaults
+    _default_color = 'Bold'
     _banner_path = FileSearcher.find_file(
             __file__,
             'banner',
     )
-    _banner = None
-    _default_color = 'Bold'
 
     @staticmethod
     def _load_banner():
@@ -70,11 +72,13 @@ class Banner:
 
 
 class Tasks:
+    _task_list = None
+
+    # MODIFY: Task filename
     _task_path = FileSearcher.find_file(
             __file__,
             'tasks.yaml',
     )
-    _task_list = None
 
     @staticmethod
     def _load_task_list():
