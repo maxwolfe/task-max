@@ -11,8 +11,6 @@ from screen.resize import resize
 from shared.utils import *
 
 
-
-
 def main(stdscr):
     stdscr.nodelay(1)
 
