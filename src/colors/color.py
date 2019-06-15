@@ -1,65 +1,7 @@
 #!/usr/bin/env python3
 import curses
-import json
-import yaml
 
-from shared.utils import FileSearcher
-
-
-class LoadStrategy:
-    def __init__(
-            self,
-            file_name,
-    ):
-        self.file_path = FileSearcher.find_file(
-                __file__,
-                file_name,
-        )
-
-    def _load_yaml(
-            self,
-    ):
-        try:
-            with open(self.file_path, 'r') as f:
-                return yaml.safe_load(f.read())
-        except FileNotFoundError:
-            return dict()
-
-    def _load_json(
-            self,
-    ):
-        try:
-            with open(self.file_path, 'r') as f:
-                return json.loads(f.read())
-        except FileNotFoundError:
-            return list()
-
-    def load(
-            self,
-    ):
-        raise NotImplementedError('Must Implement Strategy')
-
-
-class CustomColorStrategy(LoadStrategy):
-    def load(
-            self,
-    ):
-        return self._load_yaml()
-
-
-class XtermColorStrategy(LoadStrategy):
-    def load(
-            self,
-    ):
-        color_list = self._load_json()
-        color_dict = dict()
-
-        for key, data in enumerate(
-                color_list,
-        ):
-            color_dict[key] = data
-
-        return color_dict
+import colors.strategy as strategy
 
 
 # TODO: Make static between imports
@@ -71,11 +13,25 @@ class Colors:
             'Dim': curses.A_DIM,
             'Line': curses.A_UNDERLINE,
     }
+    _loader = None
+    _max_colors = 512
+
+    # MODIFY: Color defaults
     _default = 'Bold'
     _bg_default = -1
     _select_default = 238
-    _loader = None
-    _max_colors = 512
+
+    # EXTEND: List of strategy, filename pairs
+    _strategy_list = [
+            (
+                strategy.CustomColorStrategy,
+                'custom.yaml',
+            ),
+            (
+                strategy.XtermColorStrategy,
+                'xterm.json',
+            ),
+    ]
 
     @staticmethod
     def _load_number():
@@ -148,16 +104,13 @@ class Colors:
             curses.start_color()
             curses.use_default_colors()
             Colors._loader = Colors._load_number()
-            Colors._load_by_strategy(
-                    CustomColorStrategy(
-                        'custom.yaml',
-                    ),
-            )
-            Colors._load_by_strategy(
-                    XtermColorStrategy(
-                        'xterm.json',
-                    ),
-            )
+
+            for Strategy, filename in Colors._strategy_list:
+                Colors._load_by_strategy(
+                        Strategy(
+                            filename,
+                        ),
+                )
 
     @staticmethod
     def get_color(
