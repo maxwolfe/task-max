@@ -13,6 +13,7 @@ class TaskHandler:
             __file__,
             'tasks.yaml',
     )
+
     # EXTEND: Add more string actions
     _string_actions = [
             'a',

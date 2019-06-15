@@ -16,6 +16,10 @@ class GlyphError(Exception):
 class Clock:
     _known_times = {}
 
+    # MODIFY: Defaults
+    _default_color = 'Clock_Bad'
+    _24_hour_clock = False
+
     # EXTEND: Color ranges + Corresponding Colors
     _color_ranges = [
             (
@@ -27,10 +31,6 @@ class Clock:
                 'Clock_Good',
             ),
     ]
-
-    # MODIFY: Defaults
-    _default_color = 'Clock_Bad'
-    _24_hour_clock = False
 
     @staticmethod
     def _combine_glyphs(
