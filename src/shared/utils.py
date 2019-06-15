@@ -3,6 +3,9 @@ from os import path
 
 
 class FileSearcher:
+    # MODIFY: directory that holds resource files in same dir
+    _files = 'files'
+
     @staticmethod
     def find_file(
             request_file,
@@ -11,12 +14,12 @@ class FileSearcher:
         base_path = path.dirname(request_file)
         files_path = path.join(
                 base_path,
-                'files'
+                FileSearcher._files,
         )
 
         return path.join(
                 files_path,
-                filename
+                filename,
         )
 
 
