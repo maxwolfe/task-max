@@ -5,7 +5,7 @@ from datetime import datetime
 from time import sleep
 
 from colors.color import Colors
-from shared.utils import Screen 
+from shared.utils import Screen
 
 
 class GlyphError(Exception):
