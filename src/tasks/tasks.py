@@ -106,7 +106,6 @@ class Task:
 
         return False
 
-
     # EXTEND: <END OF EXTEND>
     @classmethod
     def from_parent(
@@ -127,7 +126,6 @@ class Task:
     @property
     def tab_space(self):
         return '  ' * self._priority
-
 
     @property
     def color(self):
@@ -284,7 +282,7 @@ class SprintTask(Task):
                 **args
         )
 
-        
+
 class FastTask(Task):
     _priority = 2
     _color = 'Fast'
@@ -335,6 +333,7 @@ class Factory:
                 parent,
                 **args
         )
+
 
 class FastFactory(Factory):
     @staticmethod

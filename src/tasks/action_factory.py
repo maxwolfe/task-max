@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import tasks.actions as action
 
+
 class ActionFactory:
     # EXTEND: Key -> Action mappings
     _mappings = {

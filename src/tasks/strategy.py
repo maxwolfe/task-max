@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 class SelectionStrategy:
     @staticmethod
     def find_first(
