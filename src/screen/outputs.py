@@ -5,7 +5,7 @@ from time import sleep
 
 from colors.color import Colors
 from shared.utils import FileSearcher
-from tasks.tasks import Task_List
+from tasks.task_list import TaskList
 
 
 class Banner:
@@ -83,7 +83,7 @@ class Tasks:
     @staticmethod
     def _load_task_list():
         if not Tasks._task_list:
-            Tasks._task_list = Task_List.from_yaml(Tasks._task_path)
+            Tasks._task_list = TaskList.from_yaml(Tasks._task_path)
 
         return Tasks._task_list
 

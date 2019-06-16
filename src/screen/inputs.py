@@ -4,7 +4,8 @@ import shared.shared as share
 from gadgets.clock_output import Clock
 from screen.outputs import Tasks
 from shared.utils import FileSearcher, Screen
-from tasks.actions import Action_Factory, CleanExit
+from tasks.actions import CleanExit
+from tasks.action_factory import ActionFactory
 
 
 class TaskHandler:
@@ -46,13 +47,13 @@ class TaskHandler:
             read_str = TaskHandler._get_string(
                     stdscr,
             )
-            Action_Factory.do_action(
+            ActionFactory.do_action(
                     action,
                     current,
                     read_str,
             )
         else:
-            Action_Factory.do_action(
+            ActionFactory.do_action(
                     action,
                     current,
             )

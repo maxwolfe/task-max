@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from tasks.tasks import Subtask_Factory
+from tasks.task_factory import SubtaskFactory
 
 
 class CleanExit(Exception):
@@ -21,7 +21,7 @@ class Action:
             self,
     ):
         return self.task_function(
-                *self.params,
+                *self.params
         )
 
     @classmethod
@@ -32,11 +32,11 @@ class Action:
     ):
         return cls(
                 task,
-                *params,
+                *params
         )
 
 
-class Move_Down(Action):
+class MoveDown(Action):
     def __init__(
             self,
             task,
@@ -47,7 +47,7 @@ class Move_Down(Action):
         )
 
 
-class Move_Up(Action):
+class MoveUp(Action):
     def __init__(
             self,
             task
@@ -75,7 +75,7 @@ class Add(Action):
             desc,
     ):
         super().__init__(
-                Subtask_Factory.create_task,
+                SubtaskFactory.create_task,
                 task,
                 desc,
                 False,
@@ -89,7 +89,7 @@ class Blocker(Action):
             desc,
     ):
         super().__init__(
-                Subtask_Factory.create_task,
+                SubtaskFactory.create_task,
                 task,
                 desc,
                 True,
@@ -114,7 +114,7 @@ class Ecreate(Action):
     ):
         root = task.get_root()
         super().__init__(
-                Subtask_Factory.create_task,
+                SubtaskFactory.create_task,
                 root,
                 desc,
                 True,
@@ -122,7 +122,7 @@ class Ecreate(Action):
         task.toggle_select()
 
 
-class Move_Top(Action):
+class MoveTop(Action):
     def __init__(
             self,
             task,
@@ -133,7 +133,7 @@ class Move_Top(Action):
         )
 
 
-class Move_Bottom(Action):
+class MoveBottom(Action):
     def __init__(
             self,
             task,
@@ -144,7 +144,7 @@ class Move_Bottom(Action):
         )
 
 
-class Move_After(Action):
+class MoveAfter(Action):
     def __init__(
             self,
             task,
@@ -155,7 +155,7 @@ class Move_After(Action):
         )
 
 
-class Move_Before(Action):
+class MoveBefore(Action):
     def __init__(
             self,
             task,
@@ -189,55 +189,4 @@ class Quit(Action):
                 CleanExit.call,
         )
 
-
-class Action_Factory:
-    _mappings = {
-            'a': Add,
-            'b': Blocker,
-            'd': Delete,
-            'e': Ecreate,
-            'g': Move_Top,
-            'G': Move_Bottom,
-            'j': Move_Down,
-            'k': Move_Up,
-            'n': Move_After,
-            'N': Move_Before,
-            'm': Modify,
-            'o': Open,
-            'q': Quit,
-    }
-
-    def __init__(
-            self,
-            action,
-    ):
-        self.action = action
-
-    @classmethod
-    def create_action(
-            cls,
-            key,
-            task,
-            *params
-    ):
-        return cls(
-                Action_Factory._mappings.get(key)(
-                    task,
-                    *params,
-                 ),
-        )
-
-    @staticmethod
-    def do_action(
-            key,
-            task,
-            *params
-    ):
-        action = Action_Factory.create_action(
-                key,
-                task,
-                *params,
-        )
-
-        if action:
-            action.action.do_action()
+# EXTEND: Create more action classes

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import yaml
-
-from uuid import uuid4
 
 
 class InvalidTask(Exception):
@@ -9,17 +6,29 @@ class InvalidTask(Exception):
 
 
 class Task:
+    # EXTEND: Add or modify required arguments
+    _required_args = [
+            'desc',
+            'open',
+            'selected',
+            'blocked',
+    ]
+
     def __init__(
             self,
             desc,
             is_open,
-            is_selected
+            is_selected,
+            **extras
     ):
-        self.desc = desc
         self.priority = 0
+        self.desc = desc
         self.parent = None
         self.children = []
         self._color = ''
+
+        for key in extras.keys():
+            setattr(self, key, extras[key])
 
         if is_open:
             self.is_open = True
@@ -37,12 +46,14 @@ class Task:
             parent,
             desc,
             is_open,
-            is_selected
+            is_selected,
+            **extras
     ):
         self = cls(
                 desc,
                 is_open,
                 is_selected,
+                **extras
         )
         parent.add_subtask(self)
 
@@ -346,7 +357,7 @@ class Epic(Task):
         self._color = 'Epic'
 
 
-class Sprint_Task(Task):
+class SprintTask(Task):
     def __init__(
             self,
             desc,
@@ -362,7 +373,7 @@ class Sprint_Task(Task):
         self._color = 'Sprint'
 
 
-class Fast_Task(Task):
+class FastTask(Task):
     def __init__(
             self,
             desc,
@@ -398,7 +409,7 @@ class Blocker(Task):
         return True
 
 
-class Fast_Factory:
+class FastFactory:
     @staticmethod
     def create_task(
             parent,
@@ -414,7 +425,7 @@ class Fast_Factory:
                     is_selected,
             )
         else:
-            return Fast_Task.from_parent(
+            return FastTask.from_parent(
                     parent,
                     desc,
                     False,
@@ -428,205 +439,9 @@ class Fast_Factory:
             is_blocked,
             is_selected,
     ):
-        return Fast_Factory.create_task(
+        return FastFactory.create_task(
                 parent,
                 desc,
                 is_selected,
                 is_blocked,
         )
-
-
-class Subtask_Factory:
-    _hierarchy = [
-            Root,
-            Epic,
-            Sprint_Task,
-            Fast_Factory,
-    ]
-
-    @staticmethod
-    def add_task(
-            parent,
-            desc,
-            is_open,
-            is_selected,
-            is_blocker,
-    ):
-        task = None
-
-        for idx, task_type in enumerate(
-                Subtask_Factory._hierarchy,
-        ):
-            if isinstance(
-                    parent,
-                    task_type,
-            ) and idx + 1 < len(Subtask_Factory._hierarchy):
-                if idx + 2 < len(Subtask_Factory._hierarchy):
-                    task = Subtask_Factory._hierarchy[idx + 1].from_parent(
-                            parent,
-                            desc,
-                            is_open,
-                            is_selected,
-                    )
-                else:
-                    task = Subtask_Factory._hierarchy[idx + 1].from_parent(
-                            parent,
-                            desc,
-                            is_blocker,
-                            is_selected,
-                    )
-
-        return task
-
-    @staticmethod
-    def create_task(
-            parent,
-            desc,
-            is_blocker,
-    ):
-        task = None
-
-        if isinstance(
-                parent,
-                Root,
-        ):
-            task = Epic.from_parent(
-                    parent,
-                    desc,
-                    True,
-                    True,
-            )
-        elif isinstance(
-                parent,
-                Epic,
-        ):
-            task = Sprint_Task.from_parent(
-                    parent,
-                    desc,
-                    True,
-                    True,
-            )
-        elif isinstance(
-                parent,
-                Sprint_Task,
-        ):
-            task = Fast_Factory.create_task(
-                    parent,
-                    desc,
-                    True,
-                    is_blocker,
-            )
-
-        if task:
-            parent.toggle_select()
-
-            return task
-
-
-class Task_List:
-    def __init__(self):
-        self.root = Root()
-
-    @staticmethod
-    def create_tasks(
-            root,
-            sub_dict,
-    ):
-        if not sub_dict:
-            return
-
-        for key in sub_dict:
-            obj = sub_dict[key]
-            new_root = Subtask_Factory.add_task(
-                    root,
-                    obj.get('desc'),
-                    obj.get('open'),
-                    obj.get('selected'),
-                    obj.get('blocked'),
-            )
-
-            Task_List.create_tasks(
-                    new_root,
-                    obj.get('children'),
-            )
-
-    @staticmethod
-    def create_dict(
-            root,
-            sub_dict,
-    ):
-        for obj in sorted(
-                root.children,
-                key=lambda x: x.desc,
-        ):
-            key = str(uuid4())
-            sub_dict[key] = {
-                    'desc': obj.desc,
-                    'open': obj.is_open,
-                    'selected': obj.selected,
-                    'blocked': obj.blocked,
-                    'children': {},
-            }
-
-            Task_List.create_dict(
-                    obj,
-                    sub_dict[key]['children'],
-            )
-
-    @classmethod
-    def from_yaml(
-            cls,
-            yaml_file,
-    ):
-        self = cls()
-        with open(yaml_file, 'r') as f:
-            task_dict = yaml.safe_load(f)
-
-        Task_List.create_tasks(
-                self.root,
-                task_dict,
-        )
-
-        return self
-
-    def to_yaml(
-            self,
-            yaml_file,
-    ):
-        task_dict = {}
-
-        Task_List.create_dict(
-                self.root,
-                task_dict,
-        )
-
-        with open(yaml_file, 'w') as f:
-            yaml.dump(task_dict, f)
-
-    def get_selected(
-            self,
-    ):
-        for task in self:
-            if task.selected:
-                return task
-
-        return self.root
-
-    def __iter__(self):
-        self.current = self.root
-
-        return self
-
-    def __next__(self):
-        nxt = self.current.find_next()
-        if nxt == self.current:
-            raise StopIteration('No more tasks')
-
-        self.current = nxt
-
-        return nxt
-
-    def __getitem__(self, index):
-        for idx, task in enumerate(self, 0):
-            if index == idx:
-                return task
