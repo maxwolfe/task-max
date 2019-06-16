@@ -119,7 +119,7 @@ class Task:
         parent.add_subtask(self)
 
         if self.selected:
-            parent.open = True
+            parent.opened = True
 
         return self
 
