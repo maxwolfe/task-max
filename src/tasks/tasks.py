@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from tasks.strategy import SelectionStrategy
 
 
 class InvalidTask(Exception):
@@ -9,6 +10,7 @@ class Task:
     # MODIFY: Defaults
     _color = ''
     _priority = 0
+    _selection_strategy = SelectionStrategy
 
     # EXTEND: Add or modify required arguments
     _required_args = [
@@ -157,137 +159,12 @@ class Task:
     def toggle_open(
             self,
     ):
-        self.open = not self.open
+        self.opened = not self.opened
 
     def toggle_select(
             self,
     ):
         self.selected = not self.selected
-
-    def find_first(
-            self,
-    ):
-        if self.parent:
-            return self.parent.find_first()
-
-        if self.children:
-            return self.children[0]
-
-        return self
-
-    def find_last(
-            self,
-    ):
-        return self.get_root().get_last()
-
-    def get_root(
-            self,
-    ):
-        if self.parent:
-            return self.parent.get_root()
-
-        return self
-
-    def get_last(
-            self,
-    ):
-        if not self.opened or not self.children:
-            return self
-
-        return self.children[-1].get_last()
-
-    def find_next(
-            self,
-    ):
-        if self.opened and self.children:
-            return self.children[0]
-
-        if self.parent:
-            return self.parent.find_after(
-                    self,
-            )
-
-        return self
-
-    def find_after(
-            self,
-            task,
-    ):
-        task_index = self.children.index(task)
-
-        if task_index + 1 < len(self.children):
-            return self.children[task_index + 1]
-
-        if self.parent:
-            return self.parent.find_after(
-                    self,
-            )
-
-        return task.get_last()
-
-    def find_after_closed(
-            self,
-            task,
-    ):
-        task_index = self.children.index(task)
-
-        if task_index + 1 < len(self.children):
-            return self.children[task_index + 1]
-
-        return task
-
-    def find_next_closed(
-            self,
-    ):
-        if self.parent:
-            return self.parent.find_after_closed(
-                    self,
-            )
-
-    def find_previous(
-            self,
-    ):
-        if self.parent:
-            return self.parent.find_before(
-                    self,
-            )
-
-        if self.children:
-            return self.children[0]
-
-        return self
-
-    def find_previous_closed(
-            self,
-    ):
-        return self.parent.find_before_closed(
-                self,
-        )
-
-    def find_before_closed(
-            self,
-            task,
-    ):
-        task_index = self.children.index(task)
-
-        if task_index == 0:
-            return task
-
-        return self.children[task_index - 1]
-
-    def find_before(
-            self,
-            task,
-    ):
-        task_index = self.children.index(task)
-
-        if task_index == 0:
-            if self.parent:
-                return self
-
-            return task
-
-        return self.children[task_index - 1].get_last()
 
     # TODO: Make Selection and Find Logic Extensible
     def select(
@@ -295,15 +172,15 @@ class Task:
             choice,
     ):
         mapping = {
-                'next': self.find_next,
-                'previous': self.find_previous,
-                'last': self.find_last,
-                'first': self.find_first,
-                'after': self.find_next_closed,
-                'before': self.find_previous_closed,
+                'next': self._selection_strategy.find_next,
+                'previous': self._selection_strategy.find_previous,
+                'last': self._selection_strategy.find_last,
+                'first': self._selection_strategy.find_first,
+                'after': self._selection_strategy.find_next_closed,
+                'before': self._selection_strategy.find_previous_closed,
         }
 
-        selected = mapping.get(choice)()
+        selected = mapping.get(choice)(self)
 
         if selected:
             self.toggle_select()
@@ -381,6 +258,7 @@ class Root(Task):
         return ""
 
 
+# EXTEND: Create or modify custom Task Classes
 class Epic(Task):
     _priority = 0
     _color = 'Epic'
@@ -438,7 +316,27 @@ class Blocker(Task):
         return True
 
 
-class FastFactory:
+# EXTEND: Create and modify custom factories to handle custom Task creation
+class Factory:
+    @staticmethod
+    def create_task(
+            parent,
+            **args
+    ):
+        raise NotImplementedError('Implement Custom Factory Logic')
+
+    @classmethod
+    def from_parent(
+            cls,
+            parent,
+            **args
+    ):
+        return cls.create_task(
+                parent,
+                **args
+        )
+
+class FastFactory(Factory):
     @staticmethod
     def create_task(
             parent,
@@ -454,13 +352,3 @@ class FastFactory:
                     parent,
                     **args
             )
-
-    @staticmethod
-    def from_parent(
-            parent,
-            **args
-    ):
-        return FastFactory.create_task(
-                parent,
-                **args
-        )

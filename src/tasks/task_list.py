@@ -3,11 +3,15 @@ import yaml
 
 from uuid import uuid4
 
+from tasks.strategy import SelectionStrategy
 from tasks.tasks import Root
 from tasks.task_factory import SubtaskFactory
 
 
 class TaskList:
+    # MODIFY: Defaults
+    _selection_strategy = SelectionStrategy
+
     def __init__(self):
         self.root = Root()
 
@@ -115,7 +119,9 @@ class TaskList:
         return self
 
     def __next__(self):
-        nxt = self.current.find_next()
+        nxt = TaskList._selection_strategy.find_next(
+                self.current,
+        )
 
         if nxt == self.current:
             raise StopIteration('No more tasks')
