@@ -89,7 +89,8 @@ class Clock:
         if not glyphs:
             glyphs = Clock._combine_glyphs(
                     Clock._val_to_glyph(
-                        hours if Clock._24_hour_clock else hours % 12,
+                        hours if Clock._24_hour_clock else
+                        ((hours - 1) % 12) + 1,
                         False,
                     ),
                     Clock._combine_glyphs(
