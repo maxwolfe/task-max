@@ -17,7 +17,7 @@ class Task:
                 str,
             ),
             (
-                '_opened',
+                '_open',
                 bool,
             ),
             (
@@ -42,7 +42,10 @@ class Task:
 
         for req, typ in self._required_args:
             if req not in args.keys():
-                raise InvalidTask('Missing Required Arguments')
+                raise InvalidTask('Missing Required Argument: {}\n{}'.format(
+                    req,
+                    args.keys(),
+                    ))
 
         for key in args.keys():
             if (
@@ -70,7 +73,7 @@ class Task:
 
     @property
     def opened(self):
-        return self._opened
+        return self._open
 
     @opened.setter
     def opened(self, opened):
@@ -78,7 +81,7 @@ class Task:
                 opened,
                 bool,
         ):
-            self._opened = opened
+            self._open = opened
 
     @property
     def selected(self):
@@ -371,7 +374,7 @@ class Root(Task):
         super().__init__(
                 _desc='The Root',
                 _selected=False,
-                _opened=True,
+                _open=True,
         )
 
     def __str__(self):
@@ -420,6 +423,7 @@ class FastTask(Task):
 class Blocker(Task):
     _priority = 2
     _color = 'Blocked'
+    _blocked = True
 
     def __init__(
             self,

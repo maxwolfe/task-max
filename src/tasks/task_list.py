@@ -19,14 +19,16 @@ class TaskList:
         if not sub_dict:
             return
 
-        for key in sub_dict:
+        for key in sub_dict.keys():
             obj = sub_dict[key]
+            args = {
+                    '_{}'.format(k): obj[k]
+                    for k in obj.keys()
+                    if k != 'children'
+            }
             new_root = SubtaskFactory.add_task(
                     root,
-                    obj.get('desc'),
-                    obj.get('open'),
-                    obj.get('selected'),
-                    obj.get('blocked'),
+                    **args
             )
 
             TaskList.create_tasks(
@@ -45,12 +47,23 @@ class TaskList:
         ):
             key = str(uuid4())
             sub_dict[key] = {
-                    'desc': obj.desc,
-                    'open': obj.opened,
-                    'selected': obj.selected,
-                    'blocked': obj.blocked,
                     'children': {},
             }
+
+            for k, typ in obj._required_args:
+                sub_dict[key][k[1:]] = getattr(
+                        obj,
+                        k,
+                )
+
+            for k, typ in obj._supported_args:
+                try:
+                    sub_dict[key][k[1:]] = getattr(
+                            obj,
+                            k,
+                    )
+                except AttributeError:
+                    pass
 
             TaskList.create_dict(
                     obj,

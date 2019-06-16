@@ -12,27 +12,32 @@ class Action:
     def __init__(
             self,
             task_function,
-            *params
+            *params,
+            **kwargs
     ):
         self.task_function = task_function
         self.params = params
+        self.kwargs = kwargs
 
     def do_action(
             self,
     ):
         return self.task_function(
-                *self.params
+                *self.params,
+                **self.kwargs
         )
 
     @classmethod
     def from_task(
             cls,
             task,
-            *params
+            *params,
+            **kwargs
     ):
         return cls(
                 task,
-                *params
+                *params,
+                **kwargs
         )
 
 
@@ -77,8 +82,11 @@ class Add(Action):
         super().__init__(
                 SubtaskFactory.create_task,
                 task,
-                desc,
-                False,
+                **{
+                    '_desc': desc,
+                    '_open': False,
+                    '_selected': True,
+                }
         )
 
 
@@ -91,8 +99,12 @@ class Blocker(Action):
         super().__init__(
                 SubtaskFactory.create_task,
                 task,
-                desc,
-                True,
+                **{
+                    '_desc': desc,
+                    '_open': False,
+                    '_selected': True,
+                    '_blocked': True,
+                }
         )
 
 
@@ -116,8 +128,11 @@ class Ecreate(Action):
         super().__init__(
                 SubtaskFactory.create_task,
                 root,
-                desc,
-                True,
+                **{
+                    '_desc': desc,
+                    '_open': False,
+                    '_selected': True,
+                }
         )
         task.toggle_select()
 

@@ -14,11 +14,7 @@ class SubtaskFactory:
     @staticmethod
     def add_task(
             parent,
-            desc,
-            is_open,
-            is_selected,
-            is_blocker,
-            **extras
+            **args
     ):
         task = None
 
@@ -32,17 +28,12 @@ class SubtaskFactory:
                 if idx + 2 < len(SubtaskFactory._hierarchy):
                     task = SubtaskFactory._hierarchy[idx + 1].from_parent(
                             parent,
-                            _desc=desc,
-                            _opened=is_open,
-                            _selected=is_selected,
+                            **args
                     )
                 else:
                     task = SubtaskFactory._hierarchy[idx + 1].from_parent(
                             parent,
-                            _desc=desc,
-                            _opened=is_open,
-                            _selected=is_selected,
-                            _blocked=is_blocker,
+                            **args
                     )
 
         return task
@@ -50,17 +41,11 @@ class SubtaskFactory:
     @staticmethod
     def create_task(
             parent,
-            desc,
-            is_blocker,
-            **extras
+            **args
     ):
         parent.toggle_select()
 
         return SubtaskFactory.add_task(
                 parent,
-                desc,
-                True,
-                True,
-                is_blocker,
-                **extras
+                **args
         )
