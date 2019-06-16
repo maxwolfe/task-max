@@ -32,18 +32,17 @@ class SubtaskFactory:
                 if idx + 2 < len(SubtaskFactory._hierarchy):
                     task = SubtaskFactory._hierarchy[idx + 1].from_parent(
                             parent,
-                            desc,
-                            is_open,
-                            is_selected,
-                            **extras
+                            _desc=desc,
+                            _opened=is_open,
+                            _selected=is_selected,
                     )
                 else:
                     task = SubtaskFactory._hierarchy[idx + 1].from_parent(
                             parent,
-                            desc,
-                            is_blocker,
-                            is_selected,
-                            **extras
+                            _desc=desc,
+                            _opened=is_open,
+                            _selected=is_selected,
+                            _blocked=is_blocker,
                     )
 
         return task

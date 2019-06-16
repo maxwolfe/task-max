@@ -3,7 +3,7 @@ import yaml
 
 from uuid import uuid4
 
-from tasks.tasks import Root, Task
+from tasks.tasks import Root
 from tasks.task_factory import SubtaskFactory
 
 
@@ -21,13 +21,6 @@ class TaskList:
 
         for key in sub_dict:
             obj = sub_dict[key]
-            extras = {
-                    k: obj[k]
-                    for
-                    k in obj.keys()
-                    if
-                    k not in Task._required_args
-            }
             new_root = SubtaskFactory.add_task(
                     root,
                     obj.get('desc'),
@@ -53,7 +46,7 @@ class TaskList:
             key = str(uuid4())
             sub_dict[key] = {
                     'desc': obj.desc,
-                    'open': obj.is_open,
+                    'open': obj.opened,
                     'selected': obj.selected,
                     'blocked': obj.blocked,
                     'children': {},
@@ -110,6 +103,7 @@ class TaskList:
 
     def __next__(self):
         nxt = self.current.find_next()
+
         if nxt == self.current:
             raise StopIteration('No more tasks')
 

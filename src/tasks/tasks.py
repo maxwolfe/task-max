@@ -6,69 +6,123 @@ class InvalidTask(Exception):
 
 
 class Task:
+    # MODIFY: Defaults
+    _color = ''
+    _priority = 0
+
     # EXTEND: Add or modify required arguments
     _required_args = [
-            'desc',
-            'open',
-            'selected',
-            'blocked',
+            (
+                '_desc',
+                str,
+            ),
+            (
+                '_opened',
+                bool,
+            ),
+            (
+                '_selected',
+                bool,
+            ),
+    ]
+    # EXTEND: Add or modify supported arguments
+    _supported_args = [
+            (
+                '_blocked',
+                bool,
+            ),
     ]
 
     def __init__(
             self,
-            desc,
-            is_open,
-            is_selected,
-            **extras
+            **args
     ):
-        self.priority = 0
-        self.desc = desc
         self.parent = None
         self.children = []
-        self._color = ''
 
-        for key in extras.keys():
-            setattr(self, key, extras[key])
+        for req, typ in self._required_args:
+            if req not in args.keys():
+                raise InvalidTask('Missing Required Arguments')
 
-        if is_open:
-            self.is_open = True
-        else:
-            self.is_open = False
+        for key in args.keys():
+            if (
+                    (key, type(args[key])) in self._required_args or
+                    key in self._supported_args
+            ):
+                setattr(
+                        self,
+                        key,
+                        args[key],
+                )
 
-        if is_selected:
-            self.selected = True
-        else:
-            self.selected = False
-
-    @classmethod
-    def from_parent(
-            cls,
-            parent,
-            desc,
-            is_open,
-            is_selected,
-            **extras
-    ):
-        self = cls(
-                desc,
-                is_open,
-                is_selected,
-                **extras
-        )
-        parent.add_subtask(self)
-
-        if is_selected:
-            parent.is_open = True
-
-        return self
-
+    # EXTEND: Required Args
     @property
     def desc(self):
         return self._desc
 
     @desc.setter
     def desc(self, desc):
-        self._desc = desc
+        if isinstance(
+                desc,
+                str,
+        ):
+            self._desc = desc
+
+    @property
+    def opened(self):
+        return self._opened
+
+    @opened.setter
+    def opened(self, opened):
+        if isinstance(
+                opened,
+                bool,
+        ):
+            self._opened = opened
+
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, selected):
+        if isinstance(
+                selected,
+                bool,
+        ):
+            self._selected = selected
+
+    # EXTEND: Supported Args
+    @property
+    def blocked(self):
+        for child in self.children:
+            if child.blocked:
+                return True
+
+        return False
+
+
+    # EXTEND: <END OF EXTEND>
+    @classmethod
+    def from_parent(
+            cls,
+            parent,
+            **args
+    ):
+        self = cls(
+                **args
+        )
+        parent.add_subtask(self)
+
+        if self.selected:
+            parent.open = True
+
+        return self
+
+    @property
+    def tab_space(self):
+        return '  ' * self._priority
+
 
     @property
     def color(self):
@@ -78,48 +132,29 @@ class Task:
             return self._color
 
     @property
-    def is_open(self):
-        return self._is_open
-
-    @is_open.setter
-    def is_open(self, opened):
-        self._is_open = not (not opened)
-
-    @property
-    def tab_space(self):
-        return '  ' * self.priority
-
-    @property
-    def blocked(self):
-        for child in self.children:
-            if child.blocked:
-                return True
-
-        return False
-
-    @property
     def dict(self):
         counter = 0
-        task_dict = {
-                'desc': self.desc,
-                'selected': self.selected,
-        }
+        task_dict = dict()
+
+        for arg in (self._required_args + self._supported_args):
+            task_dict[arg] = getattr(
+                    self,
+                    arg,
+            )
+
         if self.children:
-            task_dict['open'] = self._is_open
             task_dict['children'] = {}
 
             for child in self.children:
                 task_dict['children'][counter] = child.dict
                 counter += 1
-        else:
-            task_dict['blocker'] = self.blocked
 
         return task_dict
 
     def toggle_open(
             self,
     ):
-        self.is_open = not self.is_open
+        self.open = not self.open
 
     def toggle_select(
             self,
@@ -153,7 +188,7 @@ class Task:
     def get_last(
             self,
     ):
-        if not self.is_open or not self.children:
+        if not self.opened or not self.children:
             return self
 
         return self.children[-1].get_last()
@@ -161,7 +196,7 @@ class Task:
     def find_next(
             self,
     ):
-        if self.is_open and self.children:
+        if self.opened and self.children:
             return self.children[0]
 
         if self.parent:
@@ -251,6 +286,7 @@ class Task:
 
         return self.children[task_index - 1].get_last()
 
+    # TODO: Make Selection and Find Logic Extensible
     def select(
             self,
             choice,
@@ -300,7 +336,7 @@ class Task:
         output = ''
 
         if len(self.children) > 0:
-            if self._is_open:
+            if self.opened:
                 output += '{}v {}'.format(
                         self.tab_space,
                         self.desc,
@@ -333,9 +369,9 @@ class Root(Task):
             self,
     ):
         super().__init__(
-                'The Root',
-                True,
-                False,
+                _desc='The Root',
+                _selected=False,
+                _opened=True,
         )
 
     def __str__(self):
@@ -343,66 +379,55 @@ class Root(Task):
 
 
 class Epic(Task):
+    _priority = 0
+    _color = 'Epic'
+
     def __init__(
             self,
-            desc,
-            is_open,
-            is_selected,
+            **args
     ):
         super().__init__(
-                desc,
-                is_open,
-                is_selected,
+                **args
         )
-        self._color = 'Epic'
 
 
 class SprintTask(Task):
+    _priority = 1
+    _color = 'Sprint'
+
     def __init__(
             self,
-            desc,
-            is_open,
-            is_selected,
+            **args
     ):
         super().__init__(
-                desc,
-                is_open,
-                is_selected,
+                **args
         )
-        self.priority = 1
-        self._color = 'Sprint'
 
-
+        
 class FastTask(Task):
+    _priority = 2
+    _color = 'Fast'
+
     def __init__(
             self,
-            desc,
-            is_open,
-            is_selected,
+            **args
     ):
         super().__init__(
-                desc,
-                False,
-                is_selected,
+                **args
         )
-        self.priority = 2
-        self._color = 'Fast'
 
 
 class Blocker(Task):
+    _priority = 2
+    _color = 'Blocked'
+
     def __init__(
             self,
-            desc,
-            is_open,
-            is_selected,
+            **args
     ):
         super().__init__(
-                desc,
-                False,
-                is_selected,
+                **args
         )
-        self.priority = 2
-        self._color = 'Blocked'
 
     @property
     def blocked(self):
@@ -413,35 +438,25 @@ class FastFactory:
     @staticmethod
     def create_task(
             parent,
-            desc,
-            is_selected,
-            is_blocked,
+            **args
     ):
-        if is_blocked:
+        if args.get('_blocked'):
             return Blocker.from_parent(
                     parent,
-                    desc,
-                    False,
-                    is_selected,
+                    **args
             )
         else:
             return FastTask.from_parent(
                     parent,
-                    desc,
-                    False,
-                    is_selected,
+                    **args
             )
 
     @staticmethod
     def from_parent(
             parent,
-            desc,
-            is_blocked,
-            is_selected,
+            **args
     ):
         return FastFactory.create_task(
                 parent,
-                desc,
-                is_selected,
-                is_blocked,
+                **args
         )
