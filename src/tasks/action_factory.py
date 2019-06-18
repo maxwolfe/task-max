@@ -34,7 +34,10 @@ class ActionFactory:
             *params
     ):
         return cls(
-                ActionFactory._mappings.get(key)(
+                ActionFactory._mappings.get(
+                    key,
+                    ActionFactory._do_nothing,
+                )(
                     task,
                     *params
                  ),
@@ -52,5 +55,12 @@ class ActionFactory:
                 *params
         )
 
-        if action:
+        if action.action:
             action.action.do_action()
+
+    @staticmethod
+    def _do_nothing(
+            *args,
+            **kwargs
+    ):
+        return None
