@@ -14,9 +14,9 @@ def main(stdscr):
 
     max_y, max_x = stdscr.getmaxyx()
 
-    # Give line space
     task_line = Banner.banner_lines() + 1
 
+    # EXTEND: Add threads
     actions = [
             (
                 Banner.loop_banner,
