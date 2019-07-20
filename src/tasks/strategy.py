@@ -16,6 +16,7 @@ class SelectionStrategy:
 
         return req_task
 
+    @staticmethod
     def find_last(
             req_task,
     ):
@@ -25,6 +26,7 @@ class SelectionStrategy:
                 ),
         )
 
+    @staticmethod
     def get_root(
             req_task,
     ):
@@ -35,6 +37,7 @@ class SelectionStrategy:
 
         return req_task
 
+    @staticmethod
     def get_last(
             req_task,
     ):
@@ -45,6 +48,7 @@ class SelectionStrategy:
                 req_task.children[-1],
         )
 
+    @staticmethod
     def find_next(
             req_task,
     ):
@@ -59,6 +63,7 @@ class SelectionStrategy:
 
         return req_task
 
+    @staticmethod
     def find_after(
             req_task,
             task,
@@ -78,6 +83,7 @@ class SelectionStrategy:
                 task,
         )
 
+    @staticmethod
     def find_after_closed(
             req_task,
             task,
@@ -89,6 +95,7 @@ class SelectionStrategy:
 
         return task
 
+    @staticmethod
     def find_next_closed(
             req_task,
     ):
@@ -98,6 +105,7 @@ class SelectionStrategy:
                     req_task,
             )
 
+    @staticmethod
     def find_previous(
             req_task,
     ):
@@ -112,6 +120,7 @@ class SelectionStrategy:
 
         return req_task
 
+    @staticmethod
     def find_previous_closed(
             req_task,
     ):
@@ -120,6 +129,7 @@ class SelectionStrategy:
                 req_task,
         )
 
+    @staticmethod
     def find_before_closed(
             req_task,
             task,
@@ -131,6 +141,7 @@ class SelectionStrategy:
 
         return req_task.children[task_index - 1]
 
+    @staticmethod
     def find_before(
             req_task,
             task,
