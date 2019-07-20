@@ -3,8 +3,14 @@ import shared.shared as share
 
 from gadgets.clock_output import Clock
 from screen.outputs import Tasks
-from shared.utils import FileSearcher, Screen
-from tasks.actions import CleanExit
+from shared.utils import (
+        FileSearcher,
+        Screen,
+)
+from tasks.actions import (
+        CleanExit,
+        SaveState,
+)
 from tasks.action_factory import ActionFactory
 
 
@@ -92,6 +98,12 @@ class TaskHandler:
                 with share.quit_lock:
                     share.is_quit = True
 
-                task_list.to_yaml(TaskHandler._task_path)
+                task_list.to_yaml(
+                        TaskHandler._task_path,
+                )
 
                 return
+            except SaveState:
+                task_list.to_yaml(
+                        TaskHandler._task_path,
+                )

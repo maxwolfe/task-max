@@ -18,6 +18,7 @@ class ActionFactory:
             'm': action.Modify,
             'o': action.Open,
             'q': action.Quit,
+            's': action.Save,
     }
 
     def __init__(

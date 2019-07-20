@@ -8,6 +8,12 @@ class CleanExit(Exception):
         raise CleanExit('Exiting Cleanly')
 
 
+class SaveState(Exception):
+    @staticmethod
+    def call():
+        raise SaveState('Save Progress')
+
+
 class Action:
     def __init__(
             self,
@@ -202,6 +208,16 @@ class Quit(Action):
     ):
         super().__init__(
                 CleanExit.call,
+        )
+
+
+class Save(Action):
+    def __init__(
+            self,
+            task,
+    ):
+        super().__init__(
+                SaveState.call,
         )
 
 # EXTEND: Create more action classes

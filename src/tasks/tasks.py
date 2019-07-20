@@ -107,6 +107,7 @@ class Task:
         return False
 
     # EXTEND: <END OF EXTEND>
+
     @classmethod
     def from_parent(
             cls,
@@ -153,6 +154,14 @@ class Task:
                 counter += 1
 
         return task_dict
+
+    def get_root(
+            self,
+    ):
+        if self.parent:
+            return self.parent.get_root()
+
+        return self
 
     def toggle_open(
             self,
