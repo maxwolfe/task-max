@@ -22,3 +22,16 @@ ClockG:
 ClockB:
   name: Clock_Bad
   colorId: 196
+
+
+LinePos:
+  name: LinePos
+  colorId: 2
+
+LineNeg:
+  name: LineNeg
+  colorId: 196
+
+LineNeut:
+  name: LineNeut
+  colorId: 129

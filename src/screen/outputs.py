@@ -4,6 +4,7 @@ import shared.shared as share
 from time import sleep
 
 from colors.color import Colors
+from gadgets.line_numbers import LineNumbers
 from shared.utils import FileSearcher
 from tasks.task_list import TaskList
 
@@ -95,6 +96,9 @@ class Tasks:
     ):
         task_list = Tasks._load_task_list()
 
+        selected = 0
+        start_y = y
+
         for y, task in enumerate(
                 task_list,
                 y,
@@ -107,9 +111,16 @@ class Tasks:
                 )
                 stdscr.addstr(
                         y,
-                        0,
-                        task_str + ' ' * (max_x - len(task_str)),
+                        4,
+                        task_str + ' ' * (max_x - len(task_str) - 4),
                         task_attr,
                 )
+
+        LineNumbers.update_line_nums(
+                stdscr,
+                start_y,
+                y,
+                selected,
+        )
 
         return y, task_list
