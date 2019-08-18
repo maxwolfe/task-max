@@ -39,12 +39,12 @@ class LineNumbers:
                 0,
                 LineNumbers._num_length,
                 start,
-                end,
+                end + 1,
         )
 
         for line in range(
                 start,
-                end,
+                end + 1,
         ):
             stdscr.addstr(
                     line,
