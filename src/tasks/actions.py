@@ -221,4 +221,30 @@ class Save(Action):
         )
 
 
+class Highlight(Action):
+    def __init__(
+            self,
+            task,
+    ):
+        super().__init__(
+                setattr,
+                task,
+                '_color',
+                'Working',
+        )
+
+
+class Unhighlight(Action):
+    def __init__(
+            self,
+            task,
+    ):
+        super().__init__(
+                setattr,
+                task,
+                '_color',
+                task.__class__._color,
+        )
+
+
 # EXTEND: Create more action classes

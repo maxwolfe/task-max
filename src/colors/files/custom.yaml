@@ -38,3 +38,9 @@ LineNeut:
   name: LineNeut
   colorId: 136
   bg: 0
+
+
+Highlight:
+  name: Working
+  colorId: 10
+  bg: 0

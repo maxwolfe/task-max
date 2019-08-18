@@ -11,6 +11,8 @@ class ActionFactory:
             'e': action.Ecreate,
             'g': action.MoveTop,
             'G': action.MoveBottom,
+            'h': action.Highlight,
+            'H': action.Unhighlight,
             'j': action.MoveDown,
             'k': action.MoveUp,
             'n': action.MoveAfter,
