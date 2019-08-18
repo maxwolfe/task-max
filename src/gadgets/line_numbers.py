@@ -24,6 +24,17 @@ class LineNumbers:
             )
 
     @staticmethod
+    def _extra_space(
+            difference,
+    ):
+        multiplier = 3
+
+        if abs(difference) >= 10:
+            multiplier = 2
+
+        return multiplier * ' '
+
+    @staticmethod
     def update_line_nums(
             stdscr,
             start,
@@ -53,6 +64,8 @@ class LineNumbers:
                         abs(
                             line - start - cur,
                         ),
+                    ) + LineNumbers._extra_space(
+                        line - start - cur,
                     ),
                     LineNumbers._get_color(
                         line - start - cur,

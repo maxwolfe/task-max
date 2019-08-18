@@ -27,11 +27,14 @@ ClockB:
 LinePos:
   name: LinePos
   colorId: 2
+  bg: 0
 
 LineNeg:
   name: LineNeg
   colorId: 196
+  bg: 0
 
 LineNeut:
   name: LineNeut
   colorId: 136
+  bg: 0
