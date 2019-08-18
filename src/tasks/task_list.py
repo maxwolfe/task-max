@@ -80,8 +80,12 @@ class TaskList:
             yaml_file,
     ):
         self = cls()
-        with open(yaml_file, 'r') as f:
-            task_dict = yaml.safe_load(f)
+
+        try:
+            with open(yaml_file, 'r') as f:
+                task_dict = yaml.safe_load(f)
+        except FileNotFoundError:
+            task_dict = {}
 
         TaskList.create_tasks(
                 self.root,
