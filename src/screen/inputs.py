@@ -28,6 +28,17 @@ class TaskHandler:
             'e',
             'm',
      ]
+    _movement_actions = [
+            'j',
+            'k',
+    ]
+    _number_actions = [
+            str(x) for x in range(
+                10,
+            )
+    ]
+
+    _number_queue = ""
 
     @staticmethod
     def _get_string(
@@ -58,6 +69,32 @@ class TaskHandler:
                     current,
                     read_str,
             )
+        elif action in TaskHandler._number_actions:
+            TaskHandler._number_queue += action
+
+        elif action in TaskHandler._movement_actions:
+            if TaskHandler._number_queue:
+                repeat_amount = int(TaskHandler._number_queue)
+            else:
+                repeat_amount = 1
+
+            ActionFactory.do_action(
+                    action,
+                    current,
+            )
+
+            TaskHandler._number_queue = ""
+
+            while repeat_amount > 1:
+                TaskHandler._handle(
+                        stdscr,
+                        action,
+                        task_list,
+                        y,
+                        max_x,
+                )
+                repeat_amount -= 1
+
         else:
             ActionFactory.do_action(
                     action,
