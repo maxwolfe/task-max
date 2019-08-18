@@ -105,6 +105,9 @@ class Tasks:
         ):
             task_str = str(task)
 
+            if task.selected:
+                selected = y - start_y
+
             if task_str:
                 task_attr = Colors.get_color(
                         task.color,
