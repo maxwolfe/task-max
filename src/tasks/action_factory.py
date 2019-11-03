@@ -55,7 +55,7 @@ class ActionFactory:
         action = ActionFactory._create_action(
                 key,
                 task,
-                *params,
+                *params
         )
 
         if action.action:
