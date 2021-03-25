@@ -9,5 +9,5 @@ mccabe==0.6.1
 pyaml==19.4.1
 pycodestyle==2.5.0
 pyflakes==2.1.1
-PyYAML==5.1
+PyYAML==5.4
 Werkzeug==0.15.2
